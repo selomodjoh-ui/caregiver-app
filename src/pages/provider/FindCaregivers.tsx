@@ -14,6 +14,7 @@ import {
   type Shift,
 } from '../../lib/types';
 import CaregiverSummary from './CaregiverSummary';
+import type { RatingSummary } from '../../components/Rating';
 
 interface Props {
   userId: string;
@@ -26,6 +27,7 @@ export default function FindCaregivers({ userId }: Props) {
   const [credentials, setCredentials] = useState<CredentialSummary[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
+  const [summaries, setSummaries] = useState<RatingSummary[]>([]);
   const [shiftId, setShiftId] = useState('');
   const [searched, setSearched] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -62,10 +64,12 @@ export default function FindCaregivers({ userId }: Props) {
       setCards([]);
       setCredentials([]);
     } else {
-      const [c, k] = await Promise.all([
+      const [c, k, r] = await Promise.all([
         supabase.from('caregiver_cards').select('id, first_name, surname_initial').in('id', ids),
         supabase.from('credentials').select('user_id, kind, status, expires_on').in('user_id', ids),
+        supabase.from('rating_summary').select('ratee_id, average, total').in('ratee_id', ids),
       ]);
+      setSummaries((r.data ?? []) as RatingSummary[]);
       if (c.error) setError(c.error.message);
       setCards((c.data ?? []) as CaregiverCard[]);
       setCredentials((k.data ?? []) as CredentialSummary[]);
@@ -163,6 +167,7 @@ export default function FindCaregivers({ userId }: Props) {
                   card={card}
                   credentials={credentials.filter((c) => c.user_id === card.id)}
                   required={chosen?.requirements}
+                  rating={summaries.find((x) => x.ratee_id === card.id)}
                 />
                 {chosen &&
                   (existing ? (

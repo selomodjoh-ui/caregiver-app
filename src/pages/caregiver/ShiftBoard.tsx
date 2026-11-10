@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { RatingForm, RatingLine, type RatingSummary } from '../../components/Rating';
 import {
   CREDENTIAL_LABELS,
   careMix,
   dayOf,
+  daysAgoText,
   isCurrent,
   partOf,
   shiftTitle,
@@ -29,6 +31,8 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
   const [applications, setApplications] = useState<Application[]>([]);
   const [free, setFree] = useState<Set<string>>(new Set());
   const [credentials, setCredentials] = useState<MyCredential[]>([]);
+  const [summaries, setSummaries] = useState<RatingSummary[]>([]);
+  const [rated, setRated] = useState<Set<string>>(new Set());
   const [loaded, setLoaded] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -36,17 +40,19 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
 
   async function load() {
     if (!supabase) return;
-    const [s, a, f, c] = await Promise.all([
+    const [s, a, f, c, r, g] = await Promise.all([
       supabase
         .from('shifts')
         .select('*, homes(*)')
-        .gte('shift_date', todayText())
+        .gte('shift_date', daysAgoText(60))
         .in('status', ['open', 'filled'])
         .order('shift_date')
         .order('start_time'),
       supabase.from('applications').select('id, shift_id, caregiver_id, status').eq('caregiver_id', userId),
       supabase.from('availability').select('day, part').eq('user_id', userId),
       supabase.from('credentials').select('kind, expires_on').eq('user_id', userId),
+      supabase.from('rating_summary').select('ratee_id, average, total'),
+      supabase.from('ratings').select('shift_id').eq('rater_id', userId),
     ]);
     const firstError = s.error ?? a.error ?? f.error ?? c.error;
     if (firstError) setError(firstError.message);
@@ -54,6 +60,8 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
     setApplications((a.data ?? []) as Application[]);
     setFree(new Set((f.data ?? []).map((r) => `${r.day}-${r.part}`)));
     setCredentials((c.data ?? []) as MyCredential[]);
+    setSummaries((r.data ?? []) as RatingSummary[]);
+    setRated(new Set((g.data ?? []).map((x) => x.shift_id as string)));
     setLoaded(true);
   }
 
@@ -97,9 +105,14 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
     });
   }
 
-  const offers = shifts.filter((s) => appFor(s.id)?.status === 'offered' && s.status === 'open');
-  const mine = shifts.filter((s) => appFor(s.id)?.status === 'accepted');
-  const open = shifts
+  const today = todayText();
+  const upcoming = shifts.filter((s) => s.shift_date >= today);
+  const offers = upcoming.filter((s) => appFor(s.id)?.status === 'offered' && s.status === 'open');
+  const mine = upcoming.filter((s) => appFor(s.id)?.status === 'accepted');
+  const past = shifts
+    .filter((s) => s.shift_date < today && appFor(s.id)?.status === 'accepted')
+    .reverse();
+  const open = upcoming
     .filter((s) => s.status === 'open' && !offers.includes(s) && !mine.includes(s))
     .sort((a, b) => Number(fits(b)) - Number(fits(a)));
 
@@ -121,6 +134,7 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
             {shift.pay_rate != null && <span className="pay">${Number(shift.pay_rate).toFixed(2)}/hr</span>}
           </span>
           <span className="hint">{home?.name ?? 'Adult family home'}</span>
+          <RatingLine summary={summaries.find((x) => x.ratee_id === shift.home_id)} />
           <span className="chips">
             {app?.status === 'accepted' && <span className="chip ok">Yours</span>}
             {app?.status === 'applied' && <span className="chip">Applied</span>}
@@ -154,6 +168,20 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
                 ))}
               </dl>
             )}
+
+            {app?.status === 'accepted' &&
+              shift.shift_date <= today &&
+              (rated.has(shift.id) ? (
+                <p className="hint">You rated this home. Thank you.</p>
+              ) : (
+                <RatingForm
+                  shiftId={shift.id}
+                  raterId={userId}
+                  rateeId={shift.home_id}
+                  name={home?.name ?? 'this home'}
+                  onDone={load}
+                />
+              ))}
 
             {app?.status === 'offered' && (
               <div className="row">
@@ -207,6 +235,14 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
         <section className="section">
           <h2>Your shifts</h2>
           <ul className="list">{mine.map(card)}</ul>
+        </section>
+      )}
+
+      {past.length > 0 && (
+        <section className="section">
+          <h2>Past shifts</h2>
+          <p className="hint">Open one to rate the home.</p>
+          <ul className="list">{past.map(card)}</ul>
         </section>
       )}
 

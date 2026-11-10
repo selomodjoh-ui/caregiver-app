@@ -99,6 +99,14 @@ export function todayText(): string {
   return `${now.getFullYear()}-${m}-${d}`;
 }
 
+export function daysAgoText(days: number): string {
+  const then = new Date();
+  then.setDate(then.getDate() - days);
+  const m = String(then.getMonth() + 1).padStart(2, '0');
+  const d = String(then.getDate()).padStart(2, '0');
+  return `${then.getFullYear()}-${m}-${d}`;
+}
+
 export function formatDate(dateText: string): string {
   return parseDate(dateText).toLocaleDateString('en-US', {
     weekday: 'short',

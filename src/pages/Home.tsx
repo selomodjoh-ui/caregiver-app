@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js';
 import { supabase, type Profile } from '../lib/supabase';
 import type { HomeInfo, Thread } from '../lib/types';
 import Band from '../components/Band';
+import MyRatings from '../components/MyRatings';
 import TabBar, { icons, type Tab } from '../components/TabBar';
 import Credentials from './Credentials';
 import Messages from './Messages';
@@ -145,6 +146,7 @@ export default function Home({ session }: Props) {
             onBack={() => setThread(null)}
           />
         )}
+        {tab === 'account' && <MyRatings userId={userId} />}
         {tab === 'account' && (
           <section className="section">
             <h2>Your details</h2>

@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase';
 import {
   CREDENTIAL_LABELS,
   REQUIREMENT_KINDS,
+  daysAgoText,
   shiftTitle,
   todayText,
   type Application,
@@ -14,6 +15,7 @@ import {
   type Thread,
 } from '../../lib/types';
 import CaregiverSummary from './CaregiverSummary';
+import { RatingForm, type RatingSummary } from '../../components/Rating';
 
 interface Props {
   userId: string;
@@ -35,6 +37,8 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
   const [applications, setApplications] = useState<Application[]>([]);
   const [cards, setCards] = useState<CaregiverCard[]>([]);
   const [credentials, setCredentials] = useState<CredentialSummary[]>([]);
+  const [summaries, setSummaries] = useState<RatingSummary[]>([]);
+  const [rated, setRated] = useState<Set<string>>(new Set());
   const [loaded, setLoaded] = useState(false);
   const [posting, setPosting] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -53,10 +57,16 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
       .from('shifts')
       .select('*')
       .eq('home_id', userId)
-      .gte('shift_date', todayText())
+      .gte('shift_date', daysAgoText(60))
       .order('shift_date')
       .order('start_time');
     if (s.error) setError(s.error.message);
+    const [r, g] = await Promise.all([
+      supabase.from('rating_summary').select('ratee_id, average, total'),
+      supabase.from('ratings').select('shift_id').eq('rater_id', userId),
+    ]);
+    setSummaries((r.data ?? []) as RatingSummary[]);
+    setRated(new Set((g.data ?? []).map((x) => x.shift_id as string)));
     const list = (s.data ?? []) as Shift[];
     setShifts(list);
 
@@ -149,7 +159,10 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
     );
   }
 
-  const visible = shifts.filter((s) => s.status !== 'cancelled');
+  const today = todayText();
+  const upcoming = shifts.filter((s) => s.status !== 'cancelled' && s.shift_date >= today);
+  const past = shifts.filter((s) => s.status === 'filled' && s.shift_date < today).reverse();
+  const visible = [...upcoming, ...past];
 
   return (
     <>
@@ -228,7 +241,7 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
                       <span className="list-title">{shiftTitle(shift)}</span>
                       <span className="chips">
                         <span className={`chip ${shift.status === 'filled' ? 'ok' : 'warn'}`}>
-                          {shift.status === 'filled' ? 'Filled' : 'Open'}
+                          {shift.status !== 'filled' ? 'Open' : shift.shift_date < today ? 'Completed' : 'Filled'}
                         </span>
                         {shift.pay_rate != null && <span className="chip">${Number(shift.pay_rate).toFixed(2)}/hr</span>}
                       </span>
@@ -250,6 +263,7 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
                             card={card}
                             credentials={credentials.filter((c) => c.user_id === app.caregiver_id)}
                             required={shift.requirements}
+                            rating={summaries.find((x) => x.ratee_id === app.caregiver_id)}
                           />
                           <span className={`chip ${app.status === 'accepted' ? 'ok' : app.status === 'declined' ? 'bad' : ''}`}>
                             {STATUS_TEXT[app.status]}
@@ -285,6 +299,19 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
                               Message
                             </button>
                           </div>
+                          {app.status === 'accepted' &&
+                            shift.shift_date <= today &&
+                            (rated.has(shift.id) ? (
+                              <p className="hint">You rated this caregiver. Thank you.</p>
+                            ) : (
+                              <RatingForm
+                                shiftId={shift.id}
+                                raterId={userId}
+                                rateeId={app.caregiver_id}
+                                name={card ? card.first_name : 'this caregiver'}
+                                onDone={load}
+                              />
+                            ))}
                         </div>
                       );
                     })}

@@ -1,3 +1,4 @@
+import { RatingLine, type RatingSummary } from '../../components/Rating';
 import { CREDENTIAL_LABELS, isCurrent, type CaregiverCard, type CredentialSummary } from '../../lib/types';
 
 interface Props {
@@ -5,10 +6,11 @@ interface Props {
   credentials: CredentialSummary[];
   /** When given, shows how many of these the caregiver holds. */
   required?: string[];
+  rating?: RatingSummary;
 }
 
 /** A caregiver's name and the credentials they hold, as a provider sees them. */
-export default function CaregiverSummary({ card, credentials, required }: Props) {
+export default function CaregiverSummary({ card, credentials, required, rating }: Props) {
   const current = credentials.filter((c) => isCurrent(c));
   const missing = (required ?? []).filter((kind) => !current.some((c) => c.kind === kind));
 
@@ -19,6 +21,7 @@ export default function CaregiverSummary({ card, credentials, required }: Props)
       </span>
       <div className="list-main">
         <span className="list-title">{card ? `${card.first_name} ${card.surname_initial}.` : 'Caregiver'}</span>
+        <RatingLine summary={rating} />
         <span className="chips">
           {current.length === 0 && <span className="chip">No credentials added yet</span>}
           {current.map((c) => (

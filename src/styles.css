@@ -986,3 +986,84 @@ a:focus-visible {
   bottom: 96px;
   z-index: 6;
 }
+
+/* ---------- Ratings ---------- */
+
+.rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.rating.none {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.star-on {
+  display: inline-flex;
+  color: #c98a00;
+}
+
+.star-off {
+  display: inline-flex;
+  color: var(--field-line);
+}
+
+.stars-row {
+  display: inline-flex;
+  gap: 2px;
+  font-size: 18px;
+}
+
+.rate {
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--butter);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-self: stretch;
+}
+
+.star-picker {
+  display: flex;
+  gap: 4px;
+}
+
+.star-picker button {
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--field-line);
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.1s, color 0.15s;
+}
+
+.star-picker button.on {
+  color: #c98a00;
+}
+
+.star-picker button:active {
+  transform: scale(0.88);
+}
+
+.feed-item {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.feed-item p {
+  margin: 0;
+}
