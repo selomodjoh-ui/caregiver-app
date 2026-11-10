@@ -22,7 +22,7 @@ grant select on public.plans to authenticated;
 insert into public.plans (id, name, price_usd, blurb, features, sort) values
   ('pilot', 'Founding pilot', 0,
    'Free while we get started.',
-   array['Post shifts', 'Search who is free', 'Message caregivers and offer shifts', 'Free for your first 90 days'],
+   array['Post shifts', 'Search who is free', 'Message caregivers and offer shifts', 'Free for your first 30 days'],
    1),
   ('standard', 'Standard', null,
    'Everything a home needs to fill shifts.',
@@ -65,7 +65,7 @@ begin
     if tg_op = 'INSERT' then
       new.license_verified := false;
       new.plan := 'pilot';
-      new.plan_until := current_date + 90;
+      new.plan_until := current_date + 30;
     else
       new.license_verified := old.license_verified;
       if new.license_number is distinct from old.license_number then
