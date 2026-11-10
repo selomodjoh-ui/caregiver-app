@@ -11,6 +11,7 @@ import Availability from './caregiver/Availability';
 import ShiftBoard from './caregiver/ShiftBoard';
 import FindCaregivers from './provider/FindCaregivers';
 import HomeProfile from './provider/HomeProfile';
+import Packages from './provider/Packages';
 import ProviderShifts from './provider/ProviderShifts';
 
 interface Props {
@@ -135,8 +136,11 @@ export default function Home({ session }: Props) {
           ))}
         {tab === 'availability' && <Availability userId={userId} />}
         {tab === 'credentials' && <Credentials userId={userId} />}
-        {tab === 'find' && <FindCaregivers userId={userId} onOpenThread={openThread} />}
+        {tab === 'find' && (
+          <FindCaregivers userId={userId} home={home} onOpenThread={openThread} onNeedHome={() => changeTab('home')} />
+        )}
         {tab === 'home' && <HomeProfile userId={userId} home={home} onSaved={loadHome} />}
+        {tab === 'home' && home && <Packages home={home} onChanged={loadHome} />}
         {tab === 'messages' && (
           <Messages
             userId={userId}

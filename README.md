@@ -12,8 +12,11 @@ A job-matching web app for Washington State that connects licensed caregivers wi
 - Chat between a caregiver and a home, tied to a shift
 - Two-way ratings: from the day of a shift, the caregiver rates the home and the home rates
   the caregiver (stars and an optional comment, one each, no edits)
+- Packages for homes: a free 90-day pilot, Standard and Plus. Homes ask for a package in the
+  app; you invoice by hand and then set `homes.plan` and `homes.plan_until` in the Table Editor.
+  Prices live in the `plans` table. Plus homes are listed first and get printable credential reports.
 
-Not built yet: profile and home photos, payments, email or text
+Not built yet: profile and home photos, online payments, email or text
 alerts, automatic licence checks. Credentials and home licences are verified by hand in the
 Supabase Table Editor (`credentials.status`, `homes.license_verified`).
 

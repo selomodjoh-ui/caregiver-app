@@ -4,12 +4,14 @@ import {
   DAYS,
   PARTS,
   dayOf,
+  isHomeActive,
   partOf,
   shiftTitle,
   todayText,
   type Application,
   type CaregiverCard,
   type CredentialSummary,
+  type HomeInfo,
   type Part,
   type Shift,
   type Thread,
@@ -19,10 +21,12 @@ import type { RatingSummary } from '../../components/Rating';
 
 interface Props {
   userId: string;
+  home: HomeInfo | null;
   onOpenThread: (thread: Thread) => void;
+  onNeedHome: () => void;
 }
 
-export default function FindCaregivers({ userId, onOpenThread }: Props) {
+export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome }: Props) {
   const [day, setDay] = useState(6);
   const [part, setPart] = useState<Part>('night');
   const [cards, setCards] = useState<CaregiverCard[]>([]);
@@ -99,6 +103,22 @@ export default function FindCaregivers({ userId, onOpenThread }: Props) {
     setBusy(false);
     if (err) setError(err.message);
     loadShifts();
+  }
+
+  if (!home || !isHomeActive(home)) {
+    return (
+      <section className="section">
+        <h2>Who is free</h2>
+        <p className="hint">
+          {home
+            ? 'Your package has ended. Choose a package to search for caregivers again.'
+            : 'Add your home details first, then you can search for caregivers.'}
+        </p>
+        <button type="button" className="btn" onClick={onNeedHome}>
+          {home ? 'See packages' : 'Add home details'}
+        </button>
+      </section>
+    );
   }
 
   return (

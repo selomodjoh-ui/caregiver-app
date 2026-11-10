@@ -42,6 +42,9 @@ export interface HomeInfo {
   independent: number;
   description: string | null;
   license_verified: boolean;
+  plan: string;
+  plan_until: string | null;
+  requested_plan: string | null;
 }
 
 export interface Shift {
@@ -147,6 +150,16 @@ export function careMix(home: Pick<HomeInfo, 'bed_bound' | 'assisted' | 'indepen
   if (home.assisted) parts.push(`${home.assisted} assisted`);
   if (home.independent) parts.push(`${home.independent} independent`);
   return parts.join(', ');
+}
+
+/** True while the home's package has not run out. No end date means no end. */
+export function isHomeActive(home: Pick<HomeInfo, 'plan_until'>): boolean {
+  return !home.plan_until || home.plan_until >= todayText();
+}
+
+/** True for a home on the Plus package, whose shifts are listed first. */
+export function isFeatured(home: Pick<HomeInfo, 'plan' | 'plan_until'> | null | undefined): boolean {
+  return !!home && home.plan === 'plus' && isHomeActive(home);
 }
 
 /** True when a credential is on file and not past its expiry date. */

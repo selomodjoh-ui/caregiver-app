@@ -6,6 +6,7 @@ import {
   careMix,
   dayOf,
   daysAgoText,
+  isFeatured,
   isCurrent,
   partOf,
   shiftTitle,
@@ -114,7 +115,10 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
     .reverse();
   const open = upcoming
     .filter((s) => s.status === 'open' && !offers.includes(s) && !mine.includes(s))
-    .sort((a, b) => Number(fits(b)) - Number(fits(a)));
+    .sort(
+      (a, b) =>
+        Number(fits(b)) - Number(fits(a)) || Number(isFeatured(b.homes)) - Number(isFeatured(a.homes)),
+    );
 
   function card(shift: Shift) {
     const app = appFor(shift.id);
@@ -140,6 +144,7 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
             {app?.status === 'applied' && <span className="chip">Applied</span>}
             {app?.status === 'offered' && <span className="chip warn">Offered to you</span>}
             {app?.status === 'declined' && <span className="chip bad">Not selected</span>}
+            {isFeatured(home) && <span className="chip warn">Featured home</span>}
             {fits(shift) && <span className="chip ok">Fits your free time</span>}
             {mix && <span className="chip">{mix}</span>}
           </span>

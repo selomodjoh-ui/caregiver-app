@@ -4,6 +4,7 @@ import {
   CREDENTIAL_LABELS,
   REQUIREMENT_KINDS,
   daysAgoText,
+  isHomeActive,
   shiftTitle,
   todayText,
   type Application,
@@ -15,6 +16,7 @@ import {
   type Thread,
 } from '../../lib/types';
 import CaregiverSummary from './CaregiverSummary';
+import CredentialReport from './CredentialReport';
 import { RatingForm, type RatingSummary } from '../../components/Rating';
 
 interface Props {
@@ -39,6 +41,7 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
   const [credentials, setCredentials] = useState<CredentialSummary[]>([]);
   const [summaries, setSummaries] = useState<RatingSummary[]>([]);
   const [rated, setRated] = useState<Set<string>>(new Set());
+  const [report, setReport] = useState<{ app: Application; shift: Shift } | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [posting, setPosting] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -174,7 +177,14 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
 
       <section className="section">
         <h2>Post a shift</h2>
-        {!posting ? (
+        {!isHomeActive(home) ? (
+          <>
+            <p className="error">Your package has ended, so new shifts cannot be posted.</p>
+            <button type="button" className="btn" onClick={onNeedHome}>
+              See packages
+            </button>
+          </>
+        ) : !posting ? (
           <button type="button" className="btn" onClick={() => setPosting(true)}>
             Post a new shift
           </button>
@@ -300,6 +310,14 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
                             </button>
                           </div>
                           {app.status === 'accepted' &&
+                            (home.plan === 'plus' && isHomeActive(home) ? (
+                              <button type="button" className="btn small secondary" onClick={() => setReport({ app, shift })}>
+                                Credential report
+                              </button>
+                            ) : (
+                              <p className="hint">Printable credential reports come with the Plus package.</p>
+                            ))}
+                          {app.status === 'accepted' &&
                             shift.shift_date <= today &&
                             (rated.has(shift.id) ? (
                               <p className="hint">You rated this caregiver. Thank you.</p>
@@ -322,6 +340,16 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
           </ul>
         )}
       </section>
+
+      {report && (
+        <CredentialReport
+          homeName={home.name}
+          card={cards.find((c) => c.id === report.app.caregiver_id)}
+          credentials={credentials.filter((c) => c.user_id === report.app.caregiver_id)}
+          shiftTitle={shiftTitle(report.shift)}
+          onClose={() => setReport(null)}
+        />
+      )}
     </>
   );
 }
