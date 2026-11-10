@@ -19,11 +19,11 @@ interface Props {
 type TabId = 'shifts' | 'availability' | 'credentials' | 'find' | 'home' | 'messages' | 'account';
 
 const CAREGIVER_TABS: Tab<TabId>[] = [
-  { id: 'shifts', label: 'Shifts', icon: icons.shifts },
-  { id: 'availability', label: 'Free times', icon: icons.clock },
-  { id: 'credentials', label: 'Credentials', icon: icons.shield },
-  { id: 'messages', label: 'Messages', icon: icons.chat },
   { id: 'account', label: 'Me', icon: icons.person },
+  { id: 'credentials', label: 'Credentials', icon: icons.shield },
+  { id: 'availability', label: 'Free time', icon: icons.clock },
+  { id: 'shifts', label: 'Shifts', icon: icons.shifts },
+  { id: 'messages', label: 'Messages', icon: icons.chat },
 ];
 
 const PROVIDER_TABS: Tab<TabId>[] = [

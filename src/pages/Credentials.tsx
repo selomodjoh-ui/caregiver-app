@@ -26,7 +26,6 @@ const KINDS: { kind: Kind; label: string; hasNumber?: boolean }[] = [
   { kind: 'food_worker', label: 'Food worker card' },
   { kind: 'nurse_delegation', label: 'Nurse delegation certificate' },
   { kind: 'dementia_mental_health', label: 'Dementia and mental health training' },
-  { kind: 'continuing_education', label: 'Continuing education hours' },
 ];
 
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -159,7 +158,7 @@ export default function Credentials({ userId }: Props) {
           <strong>
             {done} of {KINDS.length} added
           </strong>
-          <div className="pips" aria-hidden="true">
+          <div className="pips" aria-hidden="true" style={{ gridTemplateColumns: `repeat(${KINDS.length}, minmax(0, 1fr))` }}>
             {KINDS.map(({ kind }) => (
               <span key={kind} className={`pip ${items.some((c) => c.kind === kind) ? 'on' : ''}`} />
             ))}
