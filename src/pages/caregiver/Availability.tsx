@@ -52,8 +52,8 @@ export default function Availability({ userId }: Props) {
     <section className="section">
       <h2>When are you free?</h2>
       <p className="hint">
-        Tap the times you can work outside your regular job. Homes search by these, and each tap
-        saves by itself.
+        Tap the day or night shifts you can work outside your regular job. Homes search by these,
+        and each tap saves by itself.
       </p>
 
       {error && (

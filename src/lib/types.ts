@@ -1,8 +1,7 @@
-export type Part = 'morning' | 'evening' | 'night';
+export type Part = 'day' | 'night';
 
 export const PARTS: { part: Part; label: string }[] = [
-  { part: 'morning', label: 'Morning' },
-  { part: 'evening', label: 'Evening' },
+  { part: 'day', label: 'Day' },
   { part: 'night', label: 'Night' },
 ];
 
@@ -132,12 +131,10 @@ export function formatTime(timeText: string): string {
   return m === 0 ? `${hour}${suffix}` : `${hour}:${String(m).padStart(2, '0')}${suffix}`;
 }
 
-/** Which part of the day a shift starts in. */
+/** A shift that starts from 6am up to 6pm is a day shift; anything else is a night shift. */
 export function partOf(timeText: string): Part {
   const h = Number(timeText.split(':')[0]);
-  if (h >= 5 && h < 13) return 'morning';
-  if (h >= 13 && h < 21) return 'evening';
-  return 'night';
+  return h >= 6 && h < 18 ? 'day' : 'night';
 }
 
 export function shiftTitle(shift: Pick<Shift, 'shift_date' | 'start_time' | 'end_time'>): string {
