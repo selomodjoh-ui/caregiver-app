@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase, type Profile } from '../lib/supabase';
+import Credentials from './Credentials';
 
 interface Props {
   session: Session;
@@ -67,8 +68,12 @@ export default function Home({ session }: Props) {
         </dl>
       )}
 
+      {profile?.role === 'caregiver' && <Credentials userId={session.user.id} />}
+
       <p className="hint">
-        Credentials, availability, shifts and chat are the next parts to be built.
+        {profile?.role === 'provider'
+          ? 'The home profile, posting shifts and chat are the next parts to be built.'
+          : 'Availability, shifts and chat are the next parts to be built.'}
       </p>
 
       <button type="button" className="btn secondary" onClick={() => supabase?.auth.signOut()}>
