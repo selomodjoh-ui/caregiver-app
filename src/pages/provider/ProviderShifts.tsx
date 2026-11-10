@@ -26,6 +26,16 @@ interface Props {
   onNeedHome: () => void;
 }
 
+/** One line of the post-a-shift form: some days, with one set of times and pay. */
+interface ShiftRequest {
+  dates: string[];
+  start: string;
+  end: string;
+  pay: string;
+}
+
+const emptyRequest = (): ShiftRequest => ({ dates: [''], start: '', end: '', pay: '' });
+
 const STATUS_TEXT: Record<ApplicationStatus, string> = {
   applied: 'Applied',
   offered: 'You offered this',
@@ -47,10 +57,7 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  const [dates, setDates] = useState<string[]>(['']);
-  const [start, setStart] = useState('');
-  const [end, setEnd] = useState('');
-  const [pay, setPay] = useState('');
+  const [requests, setRequests] = useState<ShiftRequest[]>([emptyRequest()]);
   const [required, setRequired] = useState<string[]>(['hca_cna', 'tb_test']);
   const [notes, setNotes] = useState('');
 
@@ -101,35 +108,38 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
   async function post(e: FormEvent) {
     e.preventDefault();
     if (!supabase) return;
-    // One shift is created for each day chosen, all with the same times and pay.
-    const chosen = [...new Set(dates.filter(Boolean))].sort();
-    if (chosen.length === 0) return;
-    setBusy(true);
-    setError('');
-    const { error: err } = await supabase.from('shifts').insert(
-      chosen.map((shiftDate) => ({
+    // Each request becomes one shift per day chosen in it.
+    const rows = requests.flatMap((r) =>
+      [...new Set(r.dates.filter(Boolean))].sort().map((shiftDate) => ({
         home_id: userId,
         shift_date: shiftDate,
-        start_time: start,
-        end_time: end,
-        pay_rate: pay === '' ? null : Number(pay),
+        start_time: r.start,
+        end_time: r.end,
+        pay_rate: r.pay === '' ? null : Number(r.pay),
         requirements: required,
         notes: notes.trim() || null,
       })),
     );
+    if (rows.length === 0) return;
+    setBusy(true);
+    setError('');
+    const { error: err } = await supabase.from('shifts').insert(rows);
     setBusy(false);
     if (err) {
       setError(err.message);
       return;
     }
     setPosting(false);
-    setDates(['']);
-    setStart('');
-    setEnd('');
-    setPay('');
+    setRequests([emptyRequest()]);
     setNotes('');
     load();
   }
+
+  function changeRequest(index: number, change: Partial<ShiftRequest>) {
+    setRequests((list) => list.map((r, n) => (n === index ? { ...r, ...change } : r)));
+  }
+
+  const shiftCount = requests.reduce((sum, r) => sum + r.dates.length, 0);
 
   async function decide(app: Application, status: ApplicationStatus) {
     if (!supabase) return;
@@ -195,53 +205,75 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
           </button>
         ) : (
           <form className="form" onSubmit={post}>
-            <div className="field">
-              <span className="legend" id="ps-days">
-                {dates.length === 1 ? 'Day' : `Days (${dates.length})`}
-              </span>
-              <div className="dates" role="group" aria-labelledby="ps-days">
-                {dates.map((value, i) => (
-                  <div key={i} className="date-row">
-                    <input
-                      type="date"
-                      required
-                      aria-label={`Day ${i + 1}`}
-                      min={todayText()}
-                      value={value}
-                      onChange={(e) => setDates((list) => list.map((d, n) => (n === i ? e.target.value : d)))}
-                    />
-                    {dates.length > 1 && (
-                      <button
-                        type="button"
-                        className="btn small secondary"
-                        aria-label={`Remove day ${i + 1}`}
-                        onClick={() => setDates((list) => list.filter((_, n) => n !== i))}
-                      >
-                        Remove
-                      </button>
-                    )}
+            {requests.map((req, r) => (
+              <div key={r} className="request" role="group" aria-label={`Shift request ${r + 1}`}>
+                {requests.length > 1 && (
+                  <div className="request-head">
+                    <span className="list-title">Shift request {r + 1}</span>
+                    <button
+                      type="button"
+                      className="btn small secondary"
+                      onClick={() => setRequests((list) => list.filter((_, n) => n !== r))}
+                    >
+                      Remove
+                    </button>
                   </div>
-                ))}
+                )}
+                <div className="field">
+                  <span className="legend">{req.dates.length === 1 ? 'Day' : `Days (${req.dates.length})`}</span>
+                  <div className="dates">
+                    {req.dates.map((value, i) => (
+                      <div key={i} className="date-row">
+                        <input
+                          type="date"
+                          required
+                          aria-label={`Request ${r + 1}, day ${i + 1}`}
+                          min={todayText()}
+                          value={value}
+                          onChange={(e) =>
+                            changeRequest(r, { dates: req.dates.map((d, n) => (n === i ? e.target.value : d)) })
+                          }
+                        />
+                        {req.dates.length > 1 && (
+                          <button
+                            type="button"
+                            className="btn small secondary"
+                            aria-label={`Remove day ${i + 1} from request ${r + 1}`}
+                            onClick={() => changeRequest(r, { dates: req.dates.filter((_, n) => n !== i) })}
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <button type="button" className="link" onClick={() => changeRequest(r, { dates: [...req.dates, ''] })}>
+                    Add another day
+                  </button>
+                </div>
+                <div className="row">
+                  <div className="field">
+                    <label htmlFor={`ps-start-${r}`}>Starts</label>
+                    <input id={`ps-start-${r}`} type="time" required value={req.start} onChange={(e) => changeRequest(r, { start: e.target.value })} />
+                  </div>
+                  <div className="field">
+                    <label htmlFor={`ps-end-${r}`}>Ends</label>
+                    <input id={`ps-end-${r}`} type="time" required value={req.end} onChange={(e) => changeRequest(r, { end: e.target.value })} />
+                  </div>
+                </div>
+                <div className="field">
+                  <label htmlFor={`ps-pay-${r}`}>Pay per hour (USD)</label>
+                  <input id={`ps-pay-${r}`} type="number" min="0" step="0.25" inputMode="decimal" value={req.pay} onChange={(e) => changeRequest(r, { pay: e.target.value })} />
+                </div>
               </div>
-              <button type="button" className="link" onClick={() => setDates((list) => [...list, ''])}>
-                Add another day
-              </button>
-              <span className="hint">Each day becomes its own shift, with the same times and pay.</span>
-            </div>
-            <div className="row">
-              <div className="field">
-                <label htmlFor="ps-start">Starts</label>
-                <input id="ps-start" type="time" required value={start} onChange={(e) => setStart(e.target.value)} />
-              </div>
-              <div className="field">
-                <label htmlFor="ps-end">Ends</label>
-                <input id="ps-end" type="time" required value={end} onChange={(e) => setEnd(e.target.value)} />
-              </div>
-            </div>
-            <div className="field">
-              <label htmlFor="ps-pay">Pay per hour (USD)</label>
-              <input id="ps-pay" type="number" min="0" step="0.25" inputMode="decimal" value={pay} onChange={(e) => setPay(e.target.value)} />
-            </div>
+            ))}
+            <button type="button" className="btn secondary" onClick={() => setRequests((list) => [...list, emptyRequest()])}>
+              Add another shift request
+            </button>
+            <span className="hint">
+              Use a new request for different hours or pay, such as a day shift and a night shift. Each day in a
+              request becomes its own shift.
+            </span>
             <fieldset className="checks">
               <legend className="legend">The caregiver must have</legend>
               {REQUIREMENT_KINDS.map((kind) => (
@@ -261,7 +293,7 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
                 Cancel
               </button>
               <button type="submit" className="btn" disabled={busy}>
-                {busy ? 'Posting…' : dates.length > 1 ? `Post ${dates.length} shifts` : 'Post shift'}
+                {busy ? 'Posting…' : shiftCount > 1 ? `Post ${shiftCount} shifts` : 'Post shift'}
               </button>
             </div>
           </form>

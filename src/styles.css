@@ -1252,3 +1252,21 @@ a:focus-visible {
   flex: 1 1 auto;
   min-width: 0;
 }
+
+.request {
+  padding: 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.request-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
