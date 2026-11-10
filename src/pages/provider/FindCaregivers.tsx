@@ -35,6 +35,7 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
   const [applications, setApplications] = useState<Application[]>([]);
   const [summaries, setSummaries] = useState<RatingSummary[]>([]);
   const [shiftId, setShiftId] = useState('');
+  const [more, setMore] = useState<{ card: CaregiverCard; slots: string[] }[] | null>(null);
   const [searched, setSearched] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -80,7 +81,56 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
       setCards((c.data ?? []) as CaregiverCard[]);
       setCredentials((k.data ?? []) as CredentialSummary[]);
     }
+    setMore(null);
     setSearched(true);
+    setBusy(false);
+  }
+
+  /** Widens the search: caregivers who are free at other times, closest to the searched time first. */
+  async function loadMore() {
+    if (!supabase) return;
+    setBusy(true);
+    setError('');
+    const a = await supabase.from('availability').select('user_id, day, part');
+    if (a.error) setError(a.error.message);
+    const shown = new Set(cards.map((c) => c.id));
+    const byPerson = new Map<string, { day: number; part: Part }[]>();
+    for (const row of (a.data ?? []) as { user_id: string; day: number; part: Part }[]) {
+      if (shown.has(row.user_id)) continue;
+      byPerson.set(row.user_id, [...(byPerson.get(row.user_id) ?? []), { day: row.day, part: row.part }]);
+    }
+    // Same day first, then the day before or after, then everyone else.
+    const distance = (slots: { day: number }[]) =>
+      Math.min(...slots.map((x) => Math.min((x.day - day + 7) % 7, (day - x.day + 7) % 7)));
+    const ids = [...byPerson.keys()]
+      .sort((x, y) => distance(byPerson.get(x)!) - distance(byPerson.get(y)!))
+      .slice(0, 20);
+    if (ids.length === 0) {
+      setMore([]);
+      setBusy(false);
+      return;
+    }
+    const [c, k, r] = await Promise.all([
+      supabase.from('caregiver_cards').select('id, first_name, surname_initial').in('id', ids),
+      supabase.from('credentials').select('user_id, kind, status, expires_on').in('user_id', ids),
+      supabase.from('rating_summary').select('ratee_id, average, total').in('ratee_id', ids),
+    ]);
+    const found = (c.data ?? []) as CaregiverCard[];
+    setCredentials((list) => [...list.filter((x) => !ids.includes(x.user_id)), ...((k.data ?? []) as CredentialSummary[])]);
+    setSummaries((list) => [...list.filter((x) => !ids.includes(x.ratee_id)), ...((r.data ?? []) as RatingSummary[])]);
+    const order = DAYS.map((d) => d.day);
+    setMore(
+      ids
+        .map((id) => found.find((x) => x.id === id))
+        .filter((x): x is CaregiverCard => !!x)
+        .map((card) => ({
+          card,
+          slots: byPerson
+            .get(card.id)!
+            .sort((x, y) => order.indexOf(x.day) - order.indexOf(y.day) || x.part.localeCompare(y.part))
+            .map((x) => `${DAYS.find((d) => d.day === x.day)!.short} ${x.part}`),
+        })),
+    );
     setBusy(false);
   }
 
@@ -103,6 +153,61 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
     setBusy(false);
     if (err) setError(err.message);
     loadShifts();
+  }
+
+  function row(card: CaregiverCard, slots?: string[]) {
+    const existing = chosen
+      ? applications.find((a) => a.shift_id === chosen.id && a.caregiver_id === card.id)
+      : undefined;
+    return (
+      <li key={card.id}>
+        <div className="applicant">
+          <CaregiverSummary
+            card={card}
+            credentials={credentials.filter((c) => c.user_id === card.id)}
+            required={chosen?.requirements}
+            rating={summaries.find((x) => x.ratee_id === card.id)}
+          />
+          {slots && (
+            <span className="chips">
+              <span className="hint">Free:</span>
+              {slots.map((slot) => (
+                <span key={slot} className="chip ok">
+                  {slot}
+                </span>
+              ))}
+            </span>
+          )}
+          <div className="actions">
+            {chosen &&
+              (existing ? (
+                <span className="chip">
+                  {existing.status === 'offered' ? 'Offer sent' : `Already ${existing.status}`}
+                </span>
+              ) : (
+                <button type="button" className="btn small" disabled={busy} onClick={() => offer(card.id)}>
+                  Offer this shift
+                </button>
+              ))}
+            <button
+              type="button"
+              className="btn small secondary"
+              onClick={() =>
+                onOpenThread({
+                  shiftId: null,
+                  homeId: userId,
+                  caregiverId: card.id,
+                  title: `${card.first_name} ${card.surname_initial}.`,
+                  subtitle: 'Direct conversation',
+                })
+              }
+            >
+              Message {card.first_name}
+            </button>
+          </div>
+        </div>
+      </li>
+    );
   }
 
   if (!home || !isHomeActive(home)) {
@@ -174,53 +279,36 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
       )}
 
       {searched && cards.length === 0 && (
-        <p className="hint">No caregivers have marked that time as free yet. Try another day or time.</p>
+        <p className="hint">
+          No caregivers have marked that time as free yet. Tap "Show more options" to see who is free at other
+          times.
+        </p>
       )}
 
-      <ul className="list">
-        {cards.map((card) => {
-          const existing = chosen
-            ? applications.find((a) => a.shift_id === chosen.id && a.caregiver_id === card.id)
-            : undefined;
-          return (
-            <li key={card.id}>
-              <div className="applicant">
-                <CaregiverSummary
-                  card={card}
-                  credentials={credentials.filter((c) => c.user_id === card.id)}
-                  required={chosen?.requirements}
-                  rating={summaries.find((x) => x.ratee_id === card.id)}
-                />
-                {chosen &&
-                  (existing ? (
-                    <span className="chip">
-                      {existing.status === 'offered' ? 'Offer sent' : `Already ${existing.status}`}
-                    </span>
-                  ) : (
-                    <button type="button" className="btn small" disabled={busy} onClick={() => offer(card.id)}>
-                      Offer this shift
-                    </button>
-                  ))}
-                <button
-                  type="button"
-                  className="btn small secondary"
-                  onClick={() =>
-                    onOpenThread({
-                      shiftId: null,
-                      homeId: userId,
-                      caregiverId: card.id,
-                      title: `${card.first_name} ${card.surname_initial}.`,
-                      subtitle: 'Direct conversation',
-                    })
-                  }
-                >
-                  Message {card.first_name}
-                </button>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+      <ul className="list">{cards.map((card) => row(card))}</ul>
+
+      {searched && more === null && (
+        <button type="button" className="btn secondary" disabled={busy} onClick={loadMore}>
+          {busy ? 'Looking…' : 'Show more options'}
+        </button>
+      )}
+
+      {more !== null && (
+        <>
+          <h3>More options</h3>
+          {more.length === 0 ? (
+            <p className="hint">There is nobody else to show yet. More caregivers appear here as they join.</p>
+          ) : (
+            <>
+              <p className="hint">
+                These caregivers have not marked {DAYS.find((d) => d.day === day)!.full} {part} as free, but may be
+                able to help. Their free times are shown. Message them to ask.
+              </p>
+              <ul className="list">{more.map((m) => row(m.card, m.slots))}</ul>
+            </>
+          )}
+        </>
+      )}
     </section>
   );
 }
