@@ -47,7 +47,7 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  const [date, setDate] = useState('');
+  const [dates, setDates] = useState<string[]>(['']);
   const [start, setStart] = useState('');
   const [end, setEnd] = useState('');
   const [pay, setPay] = useState('');
@@ -101,24 +101,29 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
   async function post(e: FormEvent) {
     e.preventDefault();
     if (!supabase) return;
+    // One shift is created for each day chosen, all with the same times and pay.
+    const chosen = [...new Set(dates.filter(Boolean))].sort();
+    if (chosen.length === 0) return;
     setBusy(true);
     setError('');
-    const { error: err } = await supabase.from('shifts').insert({
-      home_id: userId,
-      shift_date: date,
-      start_time: start,
-      end_time: end,
-      pay_rate: pay === '' ? null : Number(pay),
-      requirements: required,
-      notes: notes.trim() || null,
-    });
+    const { error: err } = await supabase.from('shifts').insert(
+      chosen.map((shiftDate) => ({
+        home_id: userId,
+        shift_date: shiftDate,
+        start_time: start,
+        end_time: end,
+        pay_rate: pay === '' ? null : Number(pay),
+        requirements: required,
+        notes: notes.trim() || null,
+      })),
+    );
     setBusy(false);
     if (err) {
       setError(err.message);
       return;
     }
     setPosting(false);
-    setDate('');
+    setDates(['']);
     setStart('');
     setEnd('');
     setPay('');
@@ -191,8 +196,37 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
         ) : (
           <form className="form" onSubmit={post}>
             <div className="field">
-              <label htmlFor="ps-date">Date</label>
-              <input id="ps-date" type="date" required min={todayText()} value={date} onChange={(e) => setDate(e.target.value)} />
+              <span className="legend" id="ps-days">
+                {dates.length === 1 ? 'Day' : `Days (${dates.length})`}
+              </span>
+              <div className="dates" role="group" aria-labelledby="ps-days">
+                {dates.map((value, i) => (
+                  <div key={i} className="date-row">
+                    <input
+                      type="date"
+                      required
+                      aria-label={`Day ${i + 1}`}
+                      min={todayText()}
+                      value={value}
+                      onChange={(e) => setDates((list) => list.map((d, n) => (n === i ? e.target.value : d)))}
+                    />
+                    {dates.length > 1 && (
+                      <button
+                        type="button"
+                        className="btn small secondary"
+                        aria-label={`Remove day ${i + 1}`}
+                        onClick={() => setDates((list) => list.filter((_, n) => n !== i))}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <button type="button" className="link" onClick={() => setDates((list) => [...list, ''])}>
+                Add another day
+              </button>
+              <span className="hint">Each day becomes its own shift, with the same times and pay.</span>
             </div>
             <div className="row">
               <div className="field">
@@ -227,7 +261,7 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
                 Cancel
               </button>
               <button type="submit" className="btn" disabled={busy}>
-                {busy ? 'Posting…' : 'Post shift'}
+                {busy ? 'Posting…' : dates.length > 1 ? `Post ${dates.length} shifts` : 'Post shift'}
               </button>
             </div>
           </form>

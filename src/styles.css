@@ -1233,3 +1233,22 @@ a:focus-visible {
 .band:has(.people) .band-art {
   display: none;
 }
+
+/* ---------- Several days when posting a shift ---------- */
+
+.dates {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.date-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.date-row input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
