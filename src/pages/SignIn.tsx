@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { supabase } from '../lib/supabase';
 import Band from '../components/Band';
+import People from '../components/People';
 
 interface Props {
   onSwitch: () => void;
@@ -28,7 +29,9 @@ export default function SignIn({ onSwitch }: Props) {
 
   return (
     <>
-      <Band title="Welcome back" lead="Sign in to see your shifts and messages." />
+      <Band title="Welcome back" lead="Sign in to see your shifts and messages.">
+        <People />
+      </Band>
       <main className="content">
         <form onSubmit={submit} className="form">
           <div className="field">

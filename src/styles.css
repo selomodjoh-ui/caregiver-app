@@ -1,23 +1,24 @@
 :root {
-  /* Colours borrowed from scrubs: berry, teal, sun yellow, periwinkle. */
-  --ground: #f4f2fb;
+  /* Calm and premium: deep emerald on soft sage, with a coral accent. */
+  --ground: #f2f6f3;
   --surface: #ffffff;
-  --ink: #1f1a3d;
-  --muted: #5a5675;
-  --line: #e2def2;
-  --field-line: #b9b3d6;
-  --berry: #b8245e;
-  --berry-dark: #8f1a48;
-  --teal: #0e7c7b;
-  --teal-dark: #0a5f5e;
-  --sun: #ffc94a;
-  --peri: #e6e3fa;
-  --mint: #ddf3ee;
-  --rose: #fbe3ec;
-  --butter: #fff1cc;
+  --ink: #12302a;
+  --muted: #4f635c;
+  --line: #dde6e0;
+  --field-line: #b4c4bb;
+  --berry: #0f4d3f; /* main colour: buttons, headings, active states */
+  --berry-dark: #0a372d;
+  --teal: #1f7a5c; /* supporting green: free slots, own chat bubbles */
+  --teal-dark: #145c44;
+  --sun: #f6a48a; /* coral accent */
+  --peri: #e3ece6;
+  --mint: #dcefe5;
+  --rose: #e4efe8;
+  --butter: #fde6dc;
   --error-bg: #fde8e4;
   --error-ink: #8a1c12;
-  --display: 'Bricolage Grotesque', 'Figtree', system-ui, sans-serif;
+  --shadow: 0 2px 12px rgba(18, 48, 42, 0.07);
+  --display: 'Plus Jakarta Sans', 'Figtree', system-ui, sans-serif;
   --body: 'Figtree', system-ui, sans-serif;
 }
 
@@ -46,17 +47,17 @@ body {
 .band {
   position: relative;
   overflow: hidden;
-  background: var(--berry);
-  color: #ffffff;
-  border-radius: 0 0 32px 32px;
+  background: #e3ece6;
+  color: var(--ink);
+  border-radius: 0 0 28px 28px;
 }
 
 .band-art {
   position: absolute;
-  top: -30px;
-  right: -46px;
-  width: 210px;
-  height: 210px;
+  right: 0;
+  bottom: 0;
+  width: 230px;
+  height: 120px;
 }
 
 .band-inner {
@@ -70,9 +71,10 @@ body {
 .brand {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-weight: 700;
   font-size: 15px;
+  color: var(--berry);
   margin-bottom: 26px;
 }
 
@@ -81,16 +83,17 @@ h1 {
   max-width: 270px;
   font-family: var(--display);
   font-weight: 700;
-  font-size: 34px;
-  line-height: 1.08;
-  letter-spacing: -0.01em;
+  font-size: 32px;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: var(--berry);
 }
 
 .band-lead {
   margin: 0;
-  max-width: 260px;
+  max-width: 250px;
   font-size: 16px;
-  color: #ffe9f1;
+  color: var(--muted);
 }
 
 /* ---------- Page body ---------- */
@@ -288,17 +291,17 @@ h2 {
   color: #ffffff;
   font: 700 17px var(--body);
   cursor: pointer;
-  box-shadow: 0 4px 0 var(--berry-dark);
+  box-shadow: 0 6px 16px rgba(15, 77, 63, 0.24);
   transition: transform 0.08s, box-shadow 0.08s, background-color 0.15s;
 }
 
 .btn:hover {
-  background: #c62a68;
+  background: #14604f;
 }
 
 .btn:active {
-  transform: translateY(4px);
-  box-shadow: 0 0 0 var(--berry-dark);
+  transform: translateY(1px);
+  box-shadow: 0 2px 6px rgba(15, 77, 63, 0.2);
 }
 
 .btn:disabled {
@@ -308,8 +311,8 @@ h2 {
 
 .btn.secondary {
   background: var(--surface);
-  color: var(--teal-dark);
-  box-shadow: inset 0 0 0 2px var(--teal), 0 4px 0 var(--teal);
+  color: var(--berry);
+  box-shadow: inset 0 0 0 1.5px var(--berry);
 }
 
 .btn.secondary:hover {
@@ -317,7 +320,7 @@ h2 {
 }
 
 .btn.secondary:active {
-  box-shadow: inset 0 0 0 2px var(--teal), 0 0 0 var(--teal);
+  box-shadow: inset 0 0 0 1.5px var(--berry);
 }
 
 .btn.small {
@@ -325,12 +328,12 @@ h2 {
   padding: 0 16px;
   border-radius: 12px;
   font-size: 15px;
-  box-shadow: inset 0 0 0 2px var(--teal);
+  box-shadow: inset 0 0 0 1.5px var(--berry);
 }
 
 .btn.small:active {
   transform: scale(0.96);
-  box-shadow: inset 0 0 0 2px var(--teal);
+  box-shadow: inset 0 0 0 1.5px var(--berry);
 }
 
 button:focus-visible,
@@ -420,7 +423,7 @@ a:focus-visible {
 
 .progress span {
   font-size: 15px;
-  color: #dff5f3;
+  color: #dcefe5;
 }
 
 .pips {
@@ -519,7 +522,7 @@ a:focus-visible {
   font-size: 13px;
   font-weight: 600;
   background: var(--peri);
-  color: #3a3566;
+  color: #2f463d;
 }
 
 .chip.ok {
@@ -529,7 +532,7 @@ a:focus-visible {
 
 .chip.warn {
   background: var(--butter);
-  color: #6b4a00;
+  color: #8a3a1c;
 }
 
 .chip.bad {
@@ -1192,4 +1195,41 @@ a:focus-visible {
   .no-print {
     display: none !important;
   }
+}
+
+/* ---------- Soft depth on cards ---------- */
+
+.list > li,
+.card,
+.week,
+.role {
+  box-shadow: var(--shadow);
+}
+
+.progress {
+  background: var(--berry);
+}
+
+.tile.done {
+  background: var(--berry);
+}
+
+.slot.on,
+.bubble.mine p {
+  background: var(--berry);
+  border-color: var(--berry);
+}
+
+/* ---------- People illustration ---------- */
+
+.people {
+  display: block;
+  width: 100%;
+  max-width: 330px;
+  height: auto;
+  margin: 14px 0 -30px;
+}
+
+.band:has(.people) .band-art {
+  display: none;
 }

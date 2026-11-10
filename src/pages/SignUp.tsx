@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { supabase, type Role } from '../lib/supabase';
 import Band from '../components/Band';
+import People from '../components/People';
 
 interface Props {
   onSwitch: () => void;
@@ -73,7 +74,9 @@ export default function SignUp({ onSwitch }: Props) {
       <Band
         title="Care work, on your schedule"
         lead="Join to find shifts in adult family homes near you."
-      />
+      >
+        <People />
+      </Band>
       <main className="content">
         <form onSubmit={submit} className="form">
           <div className="field">

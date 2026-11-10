@@ -276,7 +276,7 @@ export default function Credentials({ userId }: Props) {
 
       {toast && (
         <div className="toast" role="status">
-          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFC94A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f6a48a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
             <path d="M5 12l5 5 9-10" />
           </svg>
           {toast}
