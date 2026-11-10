@@ -146,6 +146,7 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
             {app?.status === 'declined' && <span className="chip bad">Not selected</span>}
             {isFeatured(home) && <span className="chip warn">Featured home</span>}
             {fits(shift) && <span className="chip ok">Fits your free time</span>}
+            {shift.spots > 1 && <span className="chip">{shift.spots} caregivers needed</span>}
             {mix && <span className="chip">{mix}</span>}
           </span>
         </button>

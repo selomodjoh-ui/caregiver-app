@@ -32,9 +32,10 @@ interface ShiftRequest {
   start: string;
   end: string;
   pay: string;
+  spots: string;
 }
 
-const emptyRequest = (): ShiftRequest => ({ dates: [''], start: '', end: '', pay: '' });
+const emptyRequest = (): ShiftRequest => ({ dates: [''], start: '', end: '', pay: '', spots: '1' });
 
 const STATUS_TEXT: Record<ApplicationStatus, string> = {
   applied: 'Applied',
@@ -73,10 +74,10 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
     if (s.error) setError(s.error.message);
     const [r, g] = await Promise.all([
       supabase.from('rating_summary').select('ratee_id, average, total'),
-      supabase.from('ratings').select('shift_id').eq('rater_id', userId),
+      supabase.from('ratings').select('shift_id, ratee_id').eq('rater_id', userId),
     ]);
     setSummaries((r.data ?? []) as RatingSummary[]);
-    setRated(new Set((g.data ?? []).map((x) => x.shift_id as string)));
+    setRated(new Set((g.data ?? []).map((x) => `${x.shift_id}:${x.ratee_id}`)));
     const list = (s.data ?? []) as Shift[];
     setShifts(list);
 
@@ -116,6 +117,7 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
         start_time: r.start,
         end_time: r.end,
         pay_rate: r.pay === '' ? null : Number(r.pay),
+        spots: Math.min(20, Math.max(1, Math.round(Number(r.spots)) || 1)),
         requirements: required,
         notes: notes.trim() || null,
       })),
@@ -179,7 +181,14 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
 
   const today = todayText();
   const upcoming = shifts.filter((s) => s.status !== 'cancelled' && s.shift_date >= today);
-  const past = shifts.filter((s) => s.status === 'filled' && s.shift_date < today).reverse();
+  const past = shifts
+    .filter(
+      (s) =>
+        s.status !== 'cancelled' &&
+        s.shift_date < today &&
+        applications.some((a) => a.shift_id === s.id && a.status === 'accepted'),
+    )
+    .reverse();
   const visible = [...upcoming, ...past];
 
   return (
@@ -261,9 +270,15 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
                     <input id={`ps-end-${r}`} type="time" required value={req.end} onChange={(e) => changeRequest(r, { end: e.target.value })} />
                   </div>
                 </div>
-                <div className="field">
-                  <label htmlFor={`ps-pay-${r}`}>Pay per hour (USD)</label>
-                  <input id={`ps-pay-${r}`} type="number" min="0" step="0.25" inputMode="decimal" value={req.pay} onChange={(e) => changeRequest(r, { pay: e.target.value })} />
+                <div className="row">
+                  <div className="field">
+                    <label htmlFor={`ps-pay-${r}`}>Pay per hour (USD)</label>
+                    <input id={`ps-pay-${r}`} type="number" min="0" step="0.25" inputMode="decimal" value={req.pay} onChange={(e) => changeRequest(r, { pay: e.target.value })} />
+                  </div>
+                  <div className="field">
+                    <label htmlFor={`ps-spots-${r}`}>Caregivers needed</label>
+                    <input id={`ps-spots-${r}`} type="number" min="1" max="20" step="1" inputMode="numeric" required value={req.spots} onChange={(e) => changeRequest(r, { spots: e.target.value })} />
+                  </div>
                 </div>
               </div>
             ))}
@@ -319,6 +334,11 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
                         <span className={`chip ${shift.status === 'filled' ? 'ok' : 'warn'}`}>
                           {shift.status !== 'filled' ? 'Open' : shift.shift_date < today ? 'Completed' : 'Filled'}
                         </span>
+                        {shift.spots > 1 && (
+                          <span className="chip">
+                            {apps.filter((a) => a.status === 'accepted').length} of {shift.spots} caregivers found
+                          </span>
+                        )}
                         {shift.pay_rate != null && <span className="chip">${Number(shift.pay_rate).toFixed(2)}/hr</span>}
                       </span>
                     </div>
@@ -385,7 +405,7 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
                             ))}
                           {app.status === 'accepted' &&
                             shift.shift_date <= today &&
-                            (rated.has(shift.id) ? (
+                            (rated.has(`${shift.id}:${app.caregiver_id}`) ? (
                               <p className="hint">You rated this caregiver. Thank you.</p>
                             ) : (
                               <RatingForm

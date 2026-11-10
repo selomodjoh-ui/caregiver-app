@@ -56,6 +56,8 @@ export interface Shift {
   requirements: string[];
   notes: string | null;
   status: 'open' | 'filled' | 'cancelled';
+  /** How many caregivers the shift needs. */
+  spots: number;
   homes?: HomeInfo | null;
 }
 
