@@ -1,0 +1,225 @@
+import { useEffect, useState } from 'react';
+import { supabase } from '../../lib/supabase';
+import {
+  CREDENTIAL_LABELS,
+  careMix,
+  dayOf,
+  isCurrent,
+  partOf,
+  shiftTitle,
+  todayText,
+  type Application,
+  type ApplicationStatus,
+  type Shift,
+  type Thread,
+} from '../../lib/types';
+
+interface Props {
+  userId: string;
+  onOpenThread: (thread: Thread) => void;
+}
+
+interface MyCredential {
+  kind: string;
+  expires_on: string | null;
+}
+
+export default function ShiftBoard({ userId, onOpenThread }: Props) {
+  const [shifts, setShifts] = useState<Shift[]>([]);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [free, setFree] = useState<Set<string>>(new Set());
+  const [credentials, setCredentials] = useState<MyCredential[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  async function load() {
+    if (!supabase) return;
+    const [s, a, f, c] = await Promise.all([
+      supabase
+        .from('shifts')
+        .select('*, homes(*)')
+        .gte('shift_date', todayText())
+        .in('status', ['open', 'filled'])
+        .order('shift_date')
+        .order('start_time'),
+      supabase.from('applications').select('id, shift_id, caregiver_id, status').eq('caregiver_id', userId),
+      supabase.from('availability').select('day, part').eq('user_id', userId),
+      supabase.from('credentials').select('kind, expires_on').eq('user_id', userId),
+    ]);
+    const firstError = s.error ?? a.error ?? f.error ?? c.error;
+    if (firstError) setError(firstError.message);
+    setShifts((s.data ?? []) as Shift[]);
+    setApplications((a.data ?? []) as Application[]);
+    setFree(new Set((f.data ?? []).map((r) => `${r.day}-${r.part}`)));
+    setCredentials((c.data ?? []) as MyCredential[]);
+    setLoaded(true);
+  }
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const appFor = (shiftId: string) => applications.find((a) => a.shift_id === shiftId);
+  const fits = (shift: Shift) => free.has(`${dayOf(shift.shift_date)}-${partOf(shift.start_time)}`);
+  const has = (kind: string) => isCurrent(credentials.find((c) => c.kind === kind));
+
+  async function apply(shift: Shift) {
+    if (!supabase) return;
+    setBusy(true);
+    setError('');
+    const existing = appFor(shift.id);
+    const { error: err } = existing
+      ? await supabase.from('applications').update({ status: 'applied' }).eq('id', existing.id)
+      : await supabase.from('applications').insert({ shift_id: shift.id, caregiver_id: userId, status: 'applied' });
+    setBusy(false);
+    if (err) setError(err.message);
+    load();
+  }
+
+  async function setStatus(app: Application, status: ApplicationStatus) {
+    if (!supabase) return;
+    setBusy(true);
+    setError('');
+    const { error: err } = await supabase.from('applications').update({ status }).eq('id', app.id);
+    setBusy(false);
+    if (err) setError(err.message);
+    load();
+  }
+
+  function message(shift: Shift) {
+    onOpenThread({
+      shiftId: shift.id,
+      caregiverId: userId,
+      title: shift.homes?.name ?? 'The home',
+      subtitle: shiftTitle(shift),
+    });
+  }
+
+  const offers = shifts.filter((s) => appFor(s.id)?.status === 'offered' && s.status === 'open');
+  const mine = shifts.filter((s) => appFor(s.id)?.status === 'accepted');
+  const open = shifts
+    .filter((s) => s.status === 'open' && !offers.includes(s) && !mine.includes(s))
+    .sort((a, b) => Number(fits(b)) - Number(fits(a)));
+
+  function card(shift: Shift) {
+    const app = appFor(shift.id);
+    const home = shift.homes;
+    const isOpen = openId === shift.id;
+    const mix = home ? careMix(home) : '';
+    return (
+      <li key={shift.id} className={isOpen ? 'open' : ''}>
+        <button
+          type="button"
+          className="card-button"
+          aria-expanded={isOpen}
+          onClick={() => setOpenId(isOpen ? null : shift.id)}
+        >
+          <span className="card-top">
+            <span className="list-title">{shiftTitle(shift)}</span>
+            {shift.pay_rate != null && <span className="pay">${Number(shift.pay_rate).toFixed(2)}/hr</span>}
+          </span>
+          <span className="hint">{home?.name ?? 'Adult family home'}</span>
+          <span className="chips">
+            {app?.status === 'accepted' && <span className="chip ok">Yours</span>}
+            {app?.status === 'applied' && <span className="chip">Applied</span>}
+            {app?.status === 'offered' && <span className="chip warn">Offered to you</span>}
+            {app?.status === 'declined' && <span className="chip bad">Not selected</span>}
+            {fits(shift) && <span className="chip ok">Fits your free time</span>}
+            {mix && <span className="chip">{mix}</span>}
+          </span>
+        </button>
+
+        {isOpen && (
+          <div className="form inset">
+            {home && (
+              <p className="hint">
+                {home.license_verified ? 'Licence verified. ' : 'Licence not yet verified. '}
+                {home.years_operating != null && `${home.years_operating} years operating. `}
+                {app?.status === 'accepted' && home.address && `Address: ${home.address}. `}
+                {app?.status === 'accepted' && home.phone && `Phone: ${home.phone}.`}
+              </p>
+            )}
+            {home?.description && <p className="hint">{home.description}</p>}
+            {shift.notes && <p className="hint">Note from the home: {shift.notes}</p>}
+
+            {shift.requirements.length > 0 && (
+              <dl className="card">
+                {shift.requirements.map((kind) => (
+                  <div key={kind} className="pair">
+                    <dt>{CREDENTIAL_LABELS[kind] ?? kind}</dt>
+                    <dd className={has(kind) ? 'good' : 'missing'}>{has(kind) ? 'You have it' : 'Missing'}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+
+            {app?.status === 'offered' && (
+              <div className="row">
+                <button type="button" className="btn secondary" disabled={busy} onClick={() => setStatus(app, 'declined')}>
+                  Decline
+                </button>
+                <button type="button" className="btn" disabled={busy} onClick={() => setStatus(app, 'accepted')}>
+                  Accept
+                </button>
+              </div>
+            )}
+            {(!app || app.status === 'withdrawn') && (
+              <button type="button" className="btn" disabled={busy} onClick={() => apply(shift)}>
+                Apply for this shift
+              </button>
+            )}
+            {app?.status === 'applied' && (
+              <button type="button" className="btn secondary" disabled={busy} onClick={() => setStatus(app, 'withdrawn')}>
+                Withdraw application
+              </button>
+            )}
+            {app && app.status !== 'withdrawn' && (
+              <button type="button" className="link" onClick={() => message(shift)}>
+                Message the home
+              </button>
+            )}
+          </div>
+        )}
+      </li>
+    );
+  }
+
+  if (!loaded) return <p className="hint">Loading…</p>;
+
+  return (
+    <>
+      {error && (
+        <p className="error" role="alert">
+          {error}
+        </p>
+      )}
+
+      {offers.length > 0 && (
+        <section className="section">
+          <h2>Offered to you</h2>
+          <ul className="list">{offers.map(card)}</ul>
+        </section>
+      )}
+
+      {mine.length > 0 && (
+        <section className="section">
+          <h2>Your shifts</h2>
+          <ul className="list">{mine.map(card)}</ul>
+        </section>
+      )}
+
+      <section className="section">
+        <h2>Open shifts</h2>
+        {open.length === 0 ? (
+          <p className="hint">
+            No open shifts right now. Keep your free times up to date so homes can offer you one.
+          </p>
+        ) : (
+          <ul className="list">{open.map(card)}</ul>
+        )}
+      </section>
+    </>
+  );
+}

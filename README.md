@@ -4,11 +4,16 @@ A job-matching web app for Washington State that connects licensed caregivers wi
 
 ## What is built so far
 
-- Sign-up for caregivers and providers (name, optional sex/gender, mobile, email, address, password)
-- Sign-in and sign-out
-- A profiles table in the database, filled in automatically at sign-up
+- Sign-up, sign-in and sign-out for caregivers and providers
+- Caregivers: credentials with expiry dates and document upload, weekly free times,
+  a shift board (apply, withdraw, accept or decline offers)
+- Providers: home profile, posting shifts, reviewing applicants, searching who is free,
+  offering a shift
+- Chat between a caregiver and a home, tied to a shift
 
-Still to come: credentials with expiry dates, availability, the home profile, posting and applying for shifts, and chat.
+Not built yet: ratings and testimonials after completed shifts, payments, email or text
+alerts, automatic licence checks. Credentials and home licences are verified by hand in the
+Supabase Table Editor (`credentials.status`, `homes.license_verified`).
 
 ## How it is put together
 
@@ -19,10 +24,10 @@ Still to come: credentials with expiry dates, availability, the home profile, po
 
 ## One-time setup
 
-### 1. Create the database table
+### 1. Create the database tables
 
-In the Supabase dashboard, open **SQL Editor**, start a new query, paste the contents of
-`supabase/migrations/0001_profiles.sql`, and click **Run**.
+In the Supabase dashboard, open **SQL Editor** and run each file in `supabase/migrations/`
+in number order: start a new query, paste the file's contents, and click **Run**.
 
 ### 2. Supabase address and public key
 
