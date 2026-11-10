@@ -1067,3 +1067,24 @@ a:focus-visible {
 .feed-item p {
   margin: 0;
 }
+
+/* ---------- Sharing contact details ---------- */
+
+.share {
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--peri);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.share .checks label {
+  overflow-wrap: anywhere;
+}
+
+.bubble p a {
+  color: inherit;
+  font-weight: 700;
+  text-underline-offset: 3px;
+}

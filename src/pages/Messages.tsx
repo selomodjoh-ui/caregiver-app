@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { supabase, type Role } from '../lib/supabase';
 import { shiftTitle, type Application, type CaregiverCard, type Shift, type Thread } from '../lib/types';
 
@@ -8,6 +8,41 @@ interface Props {
   thread: Thread | null;
   onOpenThread: (thread: Thread) => void;
   onBack: () => void;
+  /** The signed-in person's own contact details, which they may choose to share. */
+  contact: Contact;
+}
+
+export interface Contact {
+  phone: string | null;
+  email: string | null;
+}
+
+/** Shows a message, turning "Phone:" and "Email:" lines into links you can tap. */
+function renderBody(body: string): ReactNode {
+  return body.split('\n').map((line, i) => {
+    const phone = line.match(/^Phone: (.+)$/);
+    const email = line.match(/^Email: (\S+@\S+)$/);
+    let content: ReactNode = line;
+    if (phone) {
+      content = (
+        <>
+          Phone: <a href={`tel:${phone[1].replace(/[^0-9+]/g, '')}`}>{phone[1]}</a>
+        </>
+      );
+    } else if (email) {
+      content = (
+        <>
+          Email: <a href={`mailto:${email[1]}`}>{email[1]}</a>
+        </>
+      );
+    }
+    return (
+      <span key={i}>
+        {i > 0 && <br />}
+        {content}
+      </span>
+    );
+  });
 }
 
 interface Message {
@@ -19,9 +54,9 @@ interface Message {
 
 const POLL_MS = 5000;
 
-export default function Messages({ userId, role, thread, onOpenThread, onBack }: Props) {
+export default function Messages({ userId, role, thread, onOpenThread, onBack, contact }: Props) {
   return thread ? (
-    <Conversation userId={userId} thread={thread} onBack={onBack} />
+    <Conversation userId={userId} thread={thread} onBack={onBack} contact={contact} />
   ) : (
     <ThreadList userId={userId} role={role} onOpenThread={onOpenThread} />
   );
@@ -149,11 +184,14 @@ function ThreadList({ userId, role, onOpenThread }: Pick<Props, 'userId' | 'role
   );
 }
 
-function Conversation({ userId, thread, onBack }: Pick<Props, 'userId' | 'onBack'> & { thread: Thread }) {
+function Conversation({ userId, thread, onBack, contact }: Pick<Props, 'userId' | 'onBack' | 'contact'> & { thread: Thread }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [sharing, setSharing] = useState(false);
+  const [sharePhone, setSharePhone] = useState(true);
+  const [shareEmail, setShareEmail] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const count = useRef(0);
 
@@ -187,9 +225,21 @@ function Conversation({ userId, thread, onBack }: Pick<Props, 'userId' | 'onBack
 
   async function send(e: FormEvent) {
     e.preventDefault();
-    if (!supabase) return;
     const body = draft.trim();
     if (!body) return;
+    if (await sendBody(body)) setDraft('');
+  }
+
+  async function shareContact() {
+    const lines = ['My contact details'];
+    if (sharePhone && contact.phone) lines.push(`Phone: ${contact.phone}`);
+    if (shareEmail && contact.email) lines.push(`Email: ${contact.email}`);
+    if (lines.length === 1) return;
+    if (await sendBody(lines.join('\n'))) setSharing(false);
+  }
+
+  async function sendBody(body: string): Promise<boolean> {
+    if (!supabase) return false;
     setBusy(true);
     setError('');
     const { error: err } = await supabase.from('messages').insert({
@@ -202,11 +252,13 @@ function Conversation({ userId, thread, onBack }: Pick<Props, 'userId' | 'onBack
     setBusy(false);
     if (err) {
       setError(err.message);
-      return;
+      return false;
     }
-    setDraft('');
     load();
+    return true;
   }
+
+  const canShare = (sharePhone && !!contact.phone) || (shareEmail && !!contact.email);
 
   return (
     <section className="section chat">
@@ -225,7 +277,7 @@ function Conversation({ userId, thread, onBack }: Pick<Props, 'userId' | 'onBack
           return (
             <div key={m.id} className={`bubble ${mine ? 'mine' : ''}`}>
               <span className="who">{mine ? 'You' : thread.title}</span>
-              <p>{m.body}</p>
+              <p>{renderBody(m.body)}</p>
             </div>
           );
         })}
@@ -255,6 +307,42 @@ function Conversation({ userId, thread, onBack }: Pick<Props, 'userId' | 'onBack
           Send
         </button>
       </form>
+
+      {!sharing ? (
+        <button type="button" className="link" onClick={() => setSharing(true)}>
+          Share my contact details
+        </button>
+      ) : (
+        <div className="share">
+          <span className="legend">Share with {thread.title}</span>
+          <fieldset className="checks">
+            <legend className="sr-only">What to share</legend>
+            {contact.phone ? (
+              <label>
+                <input type="checkbox" checked={sharePhone} onChange={(e) => setSharePhone(e.target.checked)} />
+                Phone: {contact.phone}
+              </label>
+            ) : (
+              <p className="hint">There is no phone number on your profile.</p>
+            )}
+            {contact.email && (
+              <label>
+                <input type="checkbox" checked={shareEmail} onChange={(e) => setShareEmail(e.target.checked)} />
+                Email: {contact.email}
+              </label>
+            )}
+          </fieldset>
+          <p className="hint">This is your choice. Once sent, it cannot be taken back.</p>
+          <div className="row">
+            <button type="button" className="btn secondary" onClick={() => setSharing(false)}>
+              Cancel
+            </button>
+            <button type="button" className="btn" disabled={busy || !canShare} onClick={shareContact}>
+              Share
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

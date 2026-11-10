@@ -144,6 +144,10 @@ export default function Home({ session }: Props) {
             thread={thread}
             onOpenThread={openThread}
             onBack={() => setThread(null)}
+            contact={{
+              phone: (isProvider ? home?.phone : null) ?? profile.phone,
+              email: session.user.email ?? null,
+            }}
           />
         )}
         {tab === 'account' && <MyRatings userId={userId} />}
