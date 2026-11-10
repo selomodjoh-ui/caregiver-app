@@ -55,6 +55,19 @@ function ThreadList({ userId, role, onOpenThread }: Pick<Props, 'userId' | 'role
             subtitle: shiftTitle(shift),
           })),
         );
+        const d = await supabase.from('messages').select('home_id').is('shift_id', null).eq('caregiver_id', userId);
+        const homeIds = [...new Set((d.data ?? []).map((x) => x.home_id as string))];
+        if (homeIds.length > 0) {
+          const h = await supabase.from('homes').select('owner_id, name').in('owner_id', homeIds);
+          const direct = homeIds.map((id) => ({
+            shiftId: null,
+            homeId: id,
+            caregiverId: userId,
+            title: (h.data ?? []).find((x) => x.owner_id === id)?.name ?? 'A care home',
+            subtitle: 'Direct conversation',
+          }));
+          setThreads((list) => [...direct, ...list]);
+        }
       } else {
         const s = await supabase.from('shifts').select('*').eq('home_id', userId).order('shift_date');
         if (s.error) setError(s.error.message);
@@ -68,13 +81,26 @@ function ThreadList({ userId, role, onOpenThread }: Pick<Props, 'userId' | 'role
               .neq('status', 'withdrawn')
           : { data: [] };
         const apps = (a.data ?? []) as Application[];
-        const people = [...new Set(apps.map((x) => x.caregiver_id))];
+        const d = await supabase.from('messages').select('caregiver_id').is('shift_id', null).eq('home_id', userId);
+        const directIds = [...new Set((d.data ?? []).map((x) => x.caregiver_id as string))];
+        const people = [...new Set([...apps.map((x) => x.caregiver_id), ...directIds])];
         const c = people.length
           ? await supabase.from('caregiver_cards').select('id, first_name, surname_initial').in('id', people)
           : { data: [] };
         const cards = (c.data ?? []) as CaregiverCard[];
-        setThreads(
-          apps.map((app) => {
+        const nameOf = (id: string) => {
+          const card = cards.find((x) => x.id === id);
+          return card ? `${card.first_name} ${card.surname_initial}.` : 'Caregiver';
+        };
+        setThreads([
+          ...directIds.map((id) => ({
+            shiftId: null,
+            homeId: userId,
+            caregiverId: id,
+            title: nameOf(id),
+            subtitle: 'Direct conversation',
+          })),
+          ...apps.map((app) => {
             const shift = shifts.find((x) => x.id === app.shift_id)!;
             const card = cards.find((x) => x.id === app.caregiver_id);
             return {
@@ -84,7 +110,7 @@ function ThreadList({ userId, role, onOpenThread }: Pick<Props, 'userId' | 'role
               subtitle: shiftTitle(shift),
             };
           }),
-        );
+        ]);
       }
       setLoaded(true);
     }
@@ -110,10 +136,10 @@ function ThreadList({ userId, role, onOpenThread }: Pick<Props, 'userId' | 'role
       ) : (
         <ul className="list">
           {threads.map((t) => (
-            <li key={`${t.shiftId}-${t.caregiverId}`}>
+            <li key={`${t.shiftId}-${t.homeId}-${t.caregiverId}`}>
               <button type="button" className="card-button" onClick={() => onOpenThread(t)}>
                 <span className="list-title">{t.title}</span>
-                <span className="hint">About: {t.subtitle}</span>
+                <span className="hint">{t.shiftId ? `About: ${t.subtitle}` : t.subtitle}</span>
               </button>
             </li>
           ))}
@@ -133,12 +159,14 @@ function Conversation({ userId, thread, onBack }: Pick<Props, 'userId' | 'onBack
 
   async function load() {
     if (!supabase) return;
-    const { data, error: err } = await supabase
+    const base = supabase
       .from('messages')
       .select('id, sender_id, body, created_at')
-      .eq('shift_id', thread.shiftId)
-      .eq('caregiver_id', thread.caregiverId)
-      .order('created_at');
+      .eq('caregiver_id', thread.caregiverId);
+    const scoped = thread.shiftId
+      ? base.eq('shift_id', thread.shiftId)
+      : base.is('shift_id', null).eq('home_id', thread.homeId ?? '');
+    const { data, error: err } = await scoped.order('created_at');
     if (err) setError(err.message);
     else setMessages((data ?? []) as Message[]);
   }
@@ -147,7 +175,7 @@ function Conversation({ userId, thread, onBack }: Pick<Props, 'userId' | 'onBack
     load();
     const timer = window.setInterval(load, POLL_MS);
     return () => window.clearInterval(timer);
-  }, [thread.shiftId, thread.caregiverId]);
+  }, [thread.shiftId, thread.homeId, thread.caregiverId]);
 
   // Scroll to the newest message when one arrives.
   useEffect(() => {
@@ -166,6 +194,7 @@ function Conversation({ userId, thread, onBack }: Pick<Props, 'userId' | 'onBack
     setError('');
     const { error: err } = await supabase.from('messages').insert({
       shift_id: thread.shiftId,
+      home_id: thread.shiftId ? null : thread.homeId,
       caregiver_id: thread.caregiverId,
       sender_id: userId,
       body,
@@ -186,7 +215,7 @@ function Conversation({ userId, thread, onBack }: Pick<Props, 'userId' | 'onBack
       </button>
       <div>
         <h2>{thread.title}</h2>
-        <p className="hint">About: {thread.subtitle}</p>
+        <p className="hint">{thread.shiftId ? `About: ${thread.subtitle}` : thread.subtitle}</p>
       </div>
 
       <div className="bubbles" aria-live="polite">

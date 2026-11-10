@@ -135,7 +135,7 @@ export default function Home({ session }: Props) {
           ))}
         {tab === 'availability' && <Availability userId={userId} />}
         {tab === 'credentials' && <Credentials userId={userId} />}
-        {tab === 'find' && <FindCaregivers userId={userId} />}
+        {tab === 'find' && <FindCaregivers userId={userId} onOpenThread={openThread} />}
         {tab === 'home' && <HomeProfile userId={userId} home={home} onSaved={loadHome} />}
         {tab === 'messages' && (
           <Messages

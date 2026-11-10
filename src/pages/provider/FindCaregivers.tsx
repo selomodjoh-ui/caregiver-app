@@ -12,15 +12,17 @@ import {
   type CredentialSummary,
   type Part,
   type Shift,
+  type Thread,
 } from '../../lib/types';
 import CaregiverSummary from './CaregiverSummary';
 import type { RatingSummary } from '../../components/Rating';
 
 interface Props {
   userId: string;
+  onOpenThread: (thread: Thread) => void;
 }
 
-export default function FindCaregivers({ userId }: Props) {
+export default function FindCaregivers({ userId, onOpenThread }: Props) {
   const [day, setDay] = useState(6);
   const [part, setPart] = useState<Part>('night');
   const [cards, setCards] = useState<CaregiverCard[]>([]);
@@ -179,6 +181,21 @@ export default function FindCaregivers({ userId }: Props) {
                       Offer this shift
                     </button>
                   ))}
+                <button
+                  type="button"
+                  className="btn small secondary"
+                  onClick={() =>
+                    onOpenThread({
+                      shiftId: null,
+                      homeId: userId,
+                      caregiverId: card.id,
+                      title: `${card.first_name} ${card.surname_initial}.`,
+                      subtitle: 'Direct conversation',
+                    })
+                  }
+                >
+                  Message {card.first_name}
+                </button>
               </div>
             </li>
           );

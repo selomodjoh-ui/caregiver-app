@@ -81,7 +81,10 @@ export interface CredentialSummary {
 
 /** One conversation: a caregiver and a home, about one shift. */
 export interface Thread {
-  shiftId: string;
+  /** The shift the conversation is about, or null for a direct conversation. */
+  shiftId: string | null;
+  /** The provider's id. Needed for direct conversations. */
+  homeId?: string;
   caregiverId: string;
   title: string;
   subtitle: string;
