@@ -161,6 +161,9 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
             {app?.status === 'declined' && <span className="chip bad">Not selected</span>}
             {isFeatured(home) && <span className="chip warn">Featured home</span>}
             {fits(shift) && <span className="chip ok">Fits your free time</span>}
+            {shift.preferred_sex && (
+              <span className="chip">{shift.preferred_sex === 'female' ? 'Female' : 'Male'} caregiver requested</span>
+            )}
             {shift.spots > 1 && <span className="chip">{shift.spots} caregivers needed</span>}
             {mix && <span className="chip">{mix}</span>}
           </span>
@@ -177,6 +180,12 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
               </p>
             )}
             {home?.description && <p className="hint">{home.description}</p>}
+            {shift.preferred_sex && (
+              <p className="quote">
+                <strong>The home asks for a {shift.preferred_sex} caregiver for this shift.</strong> Reason given:{' '}
+                {shift.preference_reason}
+              </p>
+            )}
             {shift.pay_note && (
               <p className="quote">
                 <strong>{shift.pay_type === 'shift' ? 'What this shift covers' : 'Hours asked for'}:</strong>{' '}

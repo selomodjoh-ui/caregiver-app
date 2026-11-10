@@ -1390,3 +1390,19 @@ h3 {
   font-size: 15px;
   overflow-wrap: anywhere;
 }
+
+/* ---------- Suggested caregivers ---------- */
+
+.suggest {
+  align-self: stretch;
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--mint);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.suggest .applicant {
+  background: var(--surface);
+}

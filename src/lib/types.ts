@@ -60,6 +60,9 @@ export interface Shift {
   pay_type: 'hour' | 'shift';
   /** The home's own words on what the shift covers or the hours asked for. */
   pay_note: string | null;
+  /** Set when the home asks for a female or male caregiver; always comes with a reason. */
+  preferred_sex: 'female' | 'male' | null;
+  preference_reason: string | null;
   /** How many caregivers the shift needs. */
   spots: number;
   homes?: HomeInfo | null;
@@ -168,6 +171,12 @@ export function payForShift(shift: Pick<Shift, 'pay_rate' | 'pay_type'>, hours: 
   if (shift.pay_rate == null) return null;
   return shift.pay_type === 'shift' ? Number(shift.pay_rate) : hours * Number(shift.pay_rate);
 }
+
+/** Reasons a home may give for asking for a female or male caregiver. */
+export const PREFERENCE_REASONS = [
+  'A resident asks for a same-sex caregiver for bathing, dressing or toileting.',
+  "A resident's religious or cultural practice for personal care.",
+];
 
 export function careMix(home: Pick<HomeInfo, 'bed_bound' | 'assisted' | 'independent'>): string {
   const parts: string[] = [];

@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { supabase } from '../../lib/supabase';
 import {
   CREDENTIAL_LABELS,
+  PREFERENCE_REASONS,
   REQUIREMENT_KINDS,
   daysAgoText,
   isHomeActive,
@@ -18,6 +19,7 @@ import {
 } from '../../lib/types';
 import CaregiverSummary from './CaregiverSummary';
 import CredentialReport from './CredentialReport';
+import Suggestions from './Suggestions';
 import { RatingForm, type RatingSummary } from '../../components/Rating';
 
 interface Props {
@@ -36,9 +38,11 @@ interface ShiftRequest {
   payType: 'hour' | 'shift';
   payNote: string;
   spots: string;
+  preferredSex: '' | 'female' | 'male';
+  reason: string;
 }
 
-const emptyRequest = (): ShiftRequest => ({ dates: [''], start: '', end: '', pay: '', payType: 'hour', payNote: '', spots: '1' });
+const emptyRequest = (): ShiftRequest => ({ dates: [''], start: '', end: '', pay: '', payType: 'hour', payNote: '', spots: '1', preferredSex: '', reason: PREFERENCE_REASONS[0] });
 
 const STATUS_TEXT: Record<ApplicationStatus, string> = {
   applied: 'Applied',
@@ -122,6 +126,8 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
         pay_rate: r.pay === '' ? null : Number(r.pay),
         pay_type: r.payType,
         pay_note: r.payNote.trim() || null,
+        preferred_sex: r.preferredSex || null,
+        preference_reason: r.preferredSex ? r.reason : null,
         spots: Math.min(20, Math.max(1, Math.round(Number(r.spots)) || 1)),
         requirements: required,
         notes: notes.trim() || null,
@@ -328,6 +334,34 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
                     <input id={`ps-spots-${r}`} type="number" min="1" max="20" step="1" inputMode="numeric" required value={req.spots} onChange={(e) => changeRequest(r, { spots: e.target.value })} />
                   </div>
                 </div>
+                <div className="field">
+                  <label htmlFor={`ps-sex-${r}`}>Caregiver requested</label>
+                  <select
+                    id={`ps-sex-${r}`}
+                    value={req.preferredSex}
+                    onChange={(e) => changeRequest(r, { preferredSex: e.target.value as ShiftRequest['preferredSex'] })}
+                  >
+                    <option value="">No preference</option>
+                    <option value="female">A female caregiver</option>
+                    <option value="male">A male caregiver</option>
+                  </select>
+                </div>
+                {req.preferredSex && (
+                  <div className="field">
+                    <label htmlFor={`ps-reason-${r}`}>Reason for the request</label>
+                    <select id={`ps-reason-${r}`} value={req.reason} onChange={(e) => changeRequest(r, { reason: e.target.value })}>
+                      {PREFERENCE_REASONS.map((reason) => (
+                        <option key={reason} value={reason}>
+                          {reason}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="hint">
+                      Caregivers see this reason on the shift. Ask only when a resident's personal privacy calls
+                      for it.
+                    </span>
+                  </div>
+                )}
               </div>
             ))}
             <button type="button" className="btn secondary" onClick={() => setRequests((list) => [...list, emptyRequest()])}>
@@ -399,6 +433,20 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
                   </div>
 
                   <div className="applicants">
+                    {shift.preferred_sex && (
+                      <p className="hint">
+                        {shift.preferred_sex === 'female' ? 'Female' : 'Male'} caregiver requested. {shift.preference_reason}
+                      </p>
+                    )}
+                    {shift.status === 'open' && shift.shift_date >= today && isHomeActive(home) && (
+                      <Suggestions
+                        shift={shift}
+                        homeId={userId}
+                        stillNeeded={Math.max(1, shift.spots - apps.filter((a) => a.status === 'accepted').length)}
+                        onOffered={load}
+                        onOpenThread={onOpenThread}
+                      />
+                    )}
                     {apps.length === 0 && <p className="hint">No applicants yet.</p>}
                     {apps.map((app) => {
                       const card = cards.find((c) => c.id === app.caregiver_id);
