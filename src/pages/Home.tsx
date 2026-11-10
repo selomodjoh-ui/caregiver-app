@@ -13,12 +13,13 @@ import FindCaregivers from './provider/FindCaregivers';
 import HomeProfile from './provider/HomeProfile';
 import Packages from './provider/Packages';
 import ProviderShifts from './provider/ProviderShifts';
+import Reports from './provider/Reports';
 
 interface Props {
   session: Session;
 }
 
-type TabId = 'shifts' | 'availability' | 'credentials' | 'find' | 'home' | 'messages' | 'account';
+type TabId = 'reports' | 'shifts' | 'availability' | 'credentials' | 'find' | 'home' | 'messages' | 'account';
 
 const CAREGIVER_TABS: Tab<TabId>[] = [
   { id: 'account', label: 'Me', icon: icons.person },
@@ -31,6 +32,7 @@ const CAREGIVER_TABS: Tab<TabId>[] = [
 const PROVIDER_TABS: Tab<TabId>[] = [
   { id: 'shifts', label: 'Shifts', icon: icons.shifts },
   { id: 'find', label: 'Who is free', icon: icons.search },
+  { id: 'reports', label: 'Reports', icon: icons.report },
   { id: 'messages', label: 'Messages', icon: icons.chat },
   { id: 'home', label: 'My home', icon: icons.home },
   { id: 'account', label: 'Me', icon: icons.person },
@@ -134,6 +136,7 @@ export default function Home({ session }: Props) {
           ) : (
             <ShiftBoard userId={userId} onOpenThread={openThread} />
           ))}
+        {tab === 'reports' && <Reports userId={userId} home={home} onNeedHome={() => changeTab('home')} />}
         {tab === 'availability' && <Availability userId={userId} />}
         {tab === 'credentials' && <Credentials userId={userId} />}
         {tab === 'find' && (

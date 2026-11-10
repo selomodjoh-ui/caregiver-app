@@ -71,6 +71,12 @@ export const icons = {
       <path d="M20 20l-4.5-4.5" />
     </>,
   ),
+  report: icon(
+    <>
+      <path d="M5 20V10M12 20V4M19 20v-7" />
+      <path d="M3 20h18" />
+    </>,
+  ),
   home: icon(
     <>
       <path d="M4 11l8-7 8 7" />

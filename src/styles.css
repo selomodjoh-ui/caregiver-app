@@ -1270,3 +1270,81 @@ a:focus-visible {
   align-items: center;
   gap: 10px;
 }
+
+/* ---------- Provider reports ---------- */
+
+h3 {
+  margin: 6px 0 0;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 17px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.stats > div {
+  padding: 14px;
+  border-radius: 18px;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+}
+
+.stats strong {
+  font: 700 24px var(--display);
+  color: var(--berry);
+  overflow-wrap: anywhere;
+}
+
+.stats span {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.table-scroll {
+  overflow-x: auto;
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+
+.table-scroll .report-table {
+  min-width: 430px;
+}
+
+.print-only {
+  display: none;
+}
+
+.tabs button {
+  line-height: 1.15;
+  text-align: center;
+}
+
+@media print {
+  .printable,
+  .printable * {
+    visibility: visible;
+  }
+
+  .printable {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    padding: 0 12px;
+  }
+
+  .print-only {
+    display: block;
+  }
+
+  .table-scroll {
+    overflow: visible;
+    box-shadow: none;
+  }
+}
