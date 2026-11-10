@@ -9,7 +9,9 @@ import {
   isFeatured,
   isCurrent,
   partOf,
+  payForShift,
   payText,
+  hoursBetween,
   shiftTitle,
   todayText,
   type Application,
@@ -17,6 +19,9 @@ import {
   type Shift,
   type Thread,
 } from '../../lib/types';
+
+const money = (n: number) => `$${n.toFixed(2)}`;
+const hoursLabel = (n: number) => `${Number.isInteger(n) ? n : n.toFixed(1)} ${n === 1 ? 'hour' : 'hours'}`;
 
 interface Props {
   userId: string;
@@ -126,6 +131,9 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
     const home = shift.homes;
     const isOpen = openId === shift.id;
     const mix = home ? careMix(home) : '';
+    const hours = hoursBetween(shift.start_time, shift.end_time);
+    const total = payForShift(shift, hours);
+    const isMine = app?.status === 'accepted';
     return (
       <li key={shift.id} className={isOpen ? 'open' : ''}>
         <button
@@ -139,6 +147,12 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
             {shift.pay_rate != null && <span className="pay">{payText(shift)}</span>}
           </span>
           <span className="hint">{home?.name ?? 'Adult family home'}</span>
+          {total != null && (
+            <span className="earn">
+              {isMine ? 'You earn' : 'You would earn'} {money(total)}
+              {shift.pay_type === 'hour' && ` for ${hoursLabel(hours)}`}
+            </span>
+          )}
           <RatingLine summary={summaries.find((x) => x.ratee_id === shift.home_id)} />
           <span className="chips">
             {app?.status === 'accepted' && <span className="chip ok">Yours</span>}
@@ -163,6 +177,7 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
               </p>
             )}
             {home?.description && <p className="hint">{home.description}</p>}
+            {shift.pay_rate == null && <p className="hint">The home has not said what this shift pays. Message them to ask.</p>}
             {shift.notes && <p className="hint">Note from the home: {shift.notes}</p>}
 
             {shift.requirements.length > 0 && (
@@ -223,12 +238,39 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
 
   if (!loaded) return <p className="hint">Loading…</p>;
 
+  const earned = (list: Shift[]) =>
+    list.reduce((sum, s) => sum + (payForShift(s, hoursBetween(s.start_time, s.end_time)) ?? 0), 0);
+
+
   return (
     <>
       {error && (
         <p className="error" role="alert">
           {error}
         </p>
+      )}
+
+      {(mine.length > 0 || past.length > 0) && (
+        <section className="section">
+          <h2>Your earnings</h2>
+          <div className="stats">
+            <div>
+              <strong>{money(earned(mine))}</strong>
+              <span>
+                coming up, from {mine.length} {mine.length === 1 ? 'shift' : 'shifts'}
+              </span>
+            </div>
+            <div>
+              <strong>{money(earned(past))}</strong>
+              <span>
+                last 60 days, from {past.length} {past.length === 1 ? 'shift' : 'shifts'}
+              </span>
+            </div>
+          </div>
+          <p className="hint">
+            Worked out from each shift's hours and rate, before tax. The home pays you directly.
+          </p>
+        </section>
       )}
 
       {offers.length > 0 && (

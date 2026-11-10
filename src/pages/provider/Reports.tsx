@@ -4,6 +4,7 @@ import {
   daysAgoText,
   formatDate,
   formatTime,
+  hoursBetween,
   payForShift,
   todayText,
   type Application,
@@ -25,15 +26,6 @@ interface Row {
   hours: number;
   pay: number | null;
   stars: number | null;
-}
-
-/** Hours between two clock times. A shift that ends at or before its start runs past midnight. */
-function hoursBetween(start: string, end: string): number {
-  const [sh, sm] = start.split(':').map(Number);
-  const [eh, em] = end.split(':').map(Number);
-  let minutes = eh * 60 + em - (sh * 60 + sm);
-  if (minutes <= 0) minutes += 24 * 60;
-  return minutes / 60;
 }
 
 const money = (n: number) => `$${n.toFixed(2)}`;

@@ -152,6 +152,15 @@ export function payText(shift: Pick<Shift, 'pay_rate' | 'pay_type'>): string {
   return shift.pay_type === 'shift' ? `${amount} per shift` : `${amount}/hr`;
 }
 
+/** Hours between two clock times. A shift that ends at or before its start runs past midnight. */
+export function hoursBetween(start: string, end: string): number {
+  const [sh, sm] = start.split(':').map(Number);
+  const [eh, em] = end.split(':').map(Number);
+  let minutes = eh * 60 + em - (sh * 60 + sm);
+  if (minutes <= 0) minutes += 24 * 60;
+  return minutes / 60;
+}
+
 /** What one caregiver earns for the shift: the flat amount, or hours times the hourly rate. */
 export function payForShift(shift: Pick<Shift, 'pay_rate' | 'pay_type'>, hours: number): number | null {
   if (shift.pay_rate == null) return null;

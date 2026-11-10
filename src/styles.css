@@ -1375,3 +1375,9 @@ h3 {
   background: var(--berry);
   color: #ffffff;
 }
+
+.earn {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--berry);
+}
