@@ -56,6 +56,8 @@ export interface Shift {
   requirements: string[];
   notes: string | null;
   status: 'open' | 'filled' | 'cancelled';
+  /** Whether pay_rate is an hourly rate or a flat amount for the whole shift. */
+  pay_type: 'hour' | 'shift';
   /** How many caregivers the shift needs. */
   spots: number;
   homes?: HomeInfo | null;
@@ -141,6 +143,19 @@ export function partOf(timeText: string): Part {
 
 export function shiftTitle(shift: Pick<Shift, 'shift_date' | 'start_time' | 'end_time'>): string {
   return `${formatDate(shift.shift_date)}, ${formatTime(shift.start_time)} to ${formatTime(shift.end_time)}`;
+}
+
+/** "$22.00/hr" or "$240.00 per shift", or nothing when no pay was given. */
+export function payText(shift: Pick<Shift, 'pay_rate' | 'pay_type'>): string {
+  if (shift.pay_rate == null) return '';
+  const amount = `$${Number(shift.pay_rate).toFixed(2)}`;
+  return shift.pay_type === 'shift' ? `${amount} per shift` : `${amount}/hr`;
+}
+
+/** What one caregiver earns for the shift: the flat amount, or hours times the hourly rate. */
+export function payForShift(shift: Pick<Shift, 'pay_rate' | 'pay_type'>, hours: number): number | null {
+  if (shift.pay_rate == null) return null;
+  return shift.pay_type === 'shift' ? Number(shift.pay_rate) : hours * Number(shift.pay_rate);
 }
 
 export function careMix(home: Pick<HomeInfo, 'bed_bound' | 'assisted' | 'independent'>): string {

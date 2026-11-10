@@ -5,6 +5,7 @@ import {
   REQUIREMENT_KINDS,
   daysAgoText,
   isHomeActive,
+  payText,
   shiftTitle,
   todayText,
   type Application,
@@ -32,10 +33,11 @@ interface ShiftRequest {
   start: string;
   end: string;
   pay: string;
+  payType: 'hour' | 'shift';
   spots: string;
 }
 
-const emptyRequest = (): ShiftRequest => ({ dates: [''], start: '', end: '', pay: '', spots: '1' });
+const emptyRequest = (): ShiftRequest => ({ dates: [''], start: '', end: '', pay: '', payType: 'hour', spots: '1' });
 
 const STATUS_TEXT: Record<ApplicationStatus, string> = {
   applied: 'Applied',
@@ -117,6 +119,7 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
         start_time: r.start,
         end_time: r.end,
         pay_rate: r.pay === '' ? null : Number(r.pay),
+        pay_type: r.payType,
         spots: Math.min(20, Math.max(1, Math.round(Number(r.spots)) || 1)),
         requirements: required,
         notes: notes.trim() || null,
@@ -270,9 +273,34 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
                     <input id={`ps-end-${r}`} type="time" required value={req.end} onChange={(e) => changeRequest(r, { end: e.target.value })} />
                   </div>
                 </div>
+                <div className="field">
+                  <span className="legend" id={`ps-paytype-${r}`}>
+                    How this shift pays
+                  </span>
+                  <div className="segmented" role="group" aria-labelledby={`ps-paytype-${r}`}>
+                    <button
+                      type="button"
+                      className={req.payType === 'hour' ? 'on' : ''}
+                      aria-pressed={req.payType === 'hour'}
+                      onClick={() => changeRequest(r, { payType: 'hour' })}
+                    >
+                      Per hour
+                    </button>
+                    <button
+                      type="button"
+                      className={req.payType === 'shift' ? 'on' : ''}
+                      aria-pressed={req.payType === 'shift'}
+                      onClick={() => changeRequest(r, { payType: 'shift' })}
+                    >
+                      Per shift
+                    </button>
+                  </div>
+                </div>
                 <div className="row">
                   <div className="field">
-                    <label htmlFor={`ps-pay-${r}`}>Pay per hour (USD)</label>
+                    <label htmlFor={`ps-pay-${r}`}>
+                      {req.payType === 'shift' ? 'Pay for the shift (USD)' : 'Pay per hour (USD)'}
+                    </label>
                     <input id={`ps-pay-${r}`} type="number" min="0" step="0.25" inputMode="decimal" value={req.pay} onChange={(e) => changeRequest(r, { pay: e.target.value })} />
                   </div>
                   <div className="field">
@@ -339,7 +367,7 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
                             {apps.filter((a) => a.status === 'accepted').length} of {shift.spots} caregivers found
                           </span>
                         )}
-                        {shift.pay_rate != null && <span className="chip">${Number(shift.pay_rate).toFixed(2)}/hr</span>}
+                        {shift.pay_rate != null && <span className="chip">{payText(shift)}</span>}
                       </span>
                     </div>
                     {shift.status === 'open' && (

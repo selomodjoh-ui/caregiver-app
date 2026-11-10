@@ -1348,3 +1348,30 @@ h3 {
     box-shadow: none;
   }
 }
+
+/* ---------- Two-way switch (pay per hour or per shift) ---------- */
+
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  padding: 5px;
+  border-radius: 16px;
+  background: var(--peri);
+}
+
+.segmented button {
+  height: 44px;
+  border: none;
+  border-radius: 12px;
+  background: none;
+  color: var(--ink);
+  font: 600 15px var(--body);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.segmented button.on {
+  background: var(--berry);
+  color: #ffffff;
+}

@@ -9,6 +9,7 @@ import {
   isFeatured,
   isCurrent,
   partOf,
+  payText,
   shiftTitle,
   todayText,
   type Application,
@@ -135,7 +136,7 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
         >
           <span className="card-top">
             <span className="list-title">{shiftTitle(shift)}</span>
-            {shift.pay_rate != null && <span className="pay">${Number(shift.pay_rate).toFixed(2)}/hr</span>}
+            {shift.pay_rate != null && <span className="pay">{payText(shift)}</span>}
           </span>
           <span className="hint">{home?.name ?? 'Adult family home'}</span>
           <RatingLine summary={summaries.find((x) => x.ratee_id === shift.home_id)} />

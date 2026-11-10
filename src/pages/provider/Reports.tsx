@@ -4,6 +4,7 @@ import {
   daysAgoText,
   formatDate,
   formatTime,
+  payForShift,
   todayText,
   type Application,
   type CaregiverCard,
@@ -93,7 +94,7 @@ export default function Reports({ userId, home, onNeedHome }: Props) {
               caregiverId: app.caregiver_id,
               name: card ? `${card.first_name} ${card.surname_initial}.` : 'Caregiver',
               hours,
-              pay: shift.pay_rate != null ? hours * Number(shift.pay_rate) : null,
+              pay: payForShift(shift, hours),
               stars:
                 ratings.find((x) => x.shift_id === shift.id && x.ratee_id === app.caregiver_id)?.stars ?? null,
             };
@@ -146,7 +147,7 @@ export default function Reports({ userId, home, onNeedHome }: Props) {
   function downloadCsv() {
     const quote = (v: string) => `"${v.replace(/"/g, '""')}"`;
     const lines = [
-      ['Date', 'Start', 'End', 'Caregiver', 'Hours', 'Pay per hour (USD)', 'Estimated pay (USD)', 'Your rating'],
+      ['Date', 'Start', 'End', 'Caregiver', 'Hours', 'Pay rate (USD)', 'Paid per', 'Estimated pay (USD)', 'Your rating'],
       ...rows.map((r) => [
         r.shift.shift_date,
         r.shift.start_time.slice(0, 5),
@@ -154,6 +155,7 @@ export default function Reports({ userId, home, onNeedHome }: Props) {
         r.name,
         hoursText(r.hours),
         r.shift.pay_rate != null ? Number(r.shift.pay_rate).toFixed(2) : '',
+        r.shift.pay_rate != null ? r.shift.pay_type : '',
         r.pay != null ? r.pay.toFixed(2) : '',
         r.stars != null ? String(r.stars) : '',
       ]),
@@ -290,8 +292,8 @@ export default function Reports({ userId, home, onNeedHome }: Props) {
           )}
 
           <p className="hint">
-            Hours and pay are worked out from the times and rate on each shift. They are estimates, not a
-            payroll record.
+            Hours come from each shift's times. Pay is the flat amount for a per-shift rate, or hours times
+            the rate for an hourly one. These are estimates, not a payroll record.
           </p>
 
           <div className="row no-print">
