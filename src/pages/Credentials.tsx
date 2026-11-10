@@ -62,6 +62,7 @@ export default function Credentials({ userId }: Props) {
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [toast, setToast] = useState('');
 
   async function load() {
     if (!supabase) return;
@@ -135,6 +136,8 @@ export default function Credentials({ userId }: Props) {
       return;
     }
     setEditing(null);
+    setToast('Saved');
+    window.setTimeout(() => setToast(''), 2500);
     load();
   }
 
@@ -145,13 +148,33 @@ export default function Credentials({ userId }: Props) {
     else window.open(data.signedUrl, '_blank', 'noopener');
   }
 
+  const done = KINDS.filter(({ kind }) => items.some((c) => c.kind === kind)).length;
+
   return (
     <section className="section">
       <h2>Your credentials</h2>
-      <p className="hint">
-        Add each document with its expiry date. Testing stage: upload sample documents only, not
-        your real ones.
-      </p>
+
+      {loaded && (
+        <div className="progress">
+          <strong>
+            {done} of {KINDS.length} added
+          </strong>
+          <div className="pips" aria-hidden="true">
+            {KINDS.map(({ kind }) => (
+              <span key={kind} className={`pip ${items.some((c) => c.kind === kind) ? 'on' : ''}`} />
+            ))}
+          </div>
+          <span>
+            {done === KINDS.length
+              ? 'All done. Homes can see you are ready.'
+              : done === 0
+                ? 'Add your first document to get started.'
+                : `${KINDS.length - done} to go. Homes pick complete profiles first.`}
+          </span>
+        </div>
+      )}
+
+      <p className="hint">Testing stage: upload sample documents only, not your real ones.</p>
 
       {error && !editing && (
         <p className="error" role="alert">
@@ -163,18 +186,29 @@ export default function Credentials({ userId }: Props) {
         <p className="hint">Loading…</p>
       ) : (
         <ul className="list">
-          {KINDS.map(({ kind, label, hasNumber }) => {
+          {KINDS.map(({ kind, label, hasNumber }, index) => {
             const current = items.find((c) => c.kind === kind);
             const status = statusOf(current);
             const open = editing === kind;
             return (
-              <li key={kind}>
+              <li key={kind} className={open ? 'open' : ''}>
                 <div className="list-row">
+                  <span className={`tile ${current ? 'done' : `t${index % 4}`}`} aria-hidden="true">
+                    {current ? (
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12l5 5 9-10" />
+                      </svg>
+                    ) : (
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M7 3h7l4 4v14H7z" />
+                        <path d="M14 3v4h4" />
+                      </svg>
+                    )}
+                  </span>
                   <div className="list-main">
                     <span className="list-title">{label}</span>
-                    {current?.expires_on && <span className="hint">Expires {current.expires_on}</span>}
+                    <span className={`chip ${status.tone}`}>{status.text}</span>
                   </div>
-                  <span className={`chip ${status.tone}`}>{status.text}</span>
                   {!open && (
                     <button type="button" className="btn small secondary" onClick={() => startEdit(kind)}>
                       {current ? 'Edit' : 'Add'}
@@ -239,6 +273,15 @@ export default function Credentials({ userId }: Props) {
             );
           })}
         </ul>
+      )}
+
+      {toast && (
+        <div className="toast" role="status">
+          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFC94A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 12l5 5 9-10" />
+          </svg>
+          {toast}
+        </div>
       )}
     </section>
   );
