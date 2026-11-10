@@ -761,7 +761,11 @@ alter table public.shifts drop constraint if exists shifts_preference_reason_che
 alter table public.shifts add constraint shifts_preference_reason_check
   check (
     (preferred_sex is null and preference_reason is null)
-    or (preferred_sex is not null and char_length(btrim(preference_reason)) between 1 and 300)
+    or (
+      preferred_sex is not null
+      and preference_reason is not null
+      and char_length(btrim(preference_reason)) between 1 and 300
+    )
   );
 
 -- Caregivers who match a shift, best first. Only the shift's own home may ask.
