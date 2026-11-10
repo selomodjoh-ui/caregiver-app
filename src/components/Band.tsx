@@ -24,7 +24,7 @@ export default function Band({ title, lead, children }: Props) {
               fill="#f6a48a"
             />
           </svg>
-          Caregiver App
+          ShiftKind
         </div>
         <h1>{title}</h1>
         {lead && <p className="band-lead">{lead}</p>}
