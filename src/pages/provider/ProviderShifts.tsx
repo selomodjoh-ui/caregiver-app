@@ -34,10 +34,11 @@ interface ShiftRequest {
   end: string;
   pay: string;
   payType: 'hour' | 'shift';
+  payNote: string;
   spots: string;
 }
 
-const emptyRequest = (): ShiftRequest => ({ dates: [''], start: '', end: '', pay: '', payType: 'hour', spots: '1' });
+const emptyRequest = (): ShiftRequest => ({ dates: [''], start: '', end: '', pay: '', payType: 'hour', payNote: '', spots: '1' });
 
 const STATUS_TEXT: Record<ApplicationStatus, string> = {
   applied: 'Applied',
@@ -120,6 +121,7 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
         end_time: r.end,
         pay_rate: r.pay === '' ? null : Number(r.pay),
         pay_type: r.payType,
+        pay_note: r.payNote.trim() || null,
         spots: Math.min(20, Math.max(1, Math.round(Number(r.spots)) || 1)),
         requirements: required,
         notes: notes.trim() || null,
@@ -296,6 +298,24 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
                     </button>
                   </div>
                 </div>
+                <div className="field">
+                  <label htmlFor={`ps-paynote-${r}`}>
+                    {req.payType === 'shift' ? 'What your shift covers' : 'The hours you are asking for'} (optional)
+                  </label>
+                  <textarea
+                    id={`ps-paynote-${r}`}
+                    rows={2}
+                    maxLength={300}
+                    placeholder={
+                      req.payType === 'shift'
+                        ? 'For example: a night shift here is 12 hours, 7pm to 7am, with a 30-minute break.'
+                        : 'For example: 8 hours, with the option to stay on for 4 more.'
+                    }
+                    value={req.payNote}
+                    onChange={(e) => changeRequest(r, { payNote: e.target.value })}
+                  />
+                  <span className="hint">Caregivers see this on the shift, in your words.</span>
+                </div>
                 <div className="row">
                   <div className="field">
                     <label htmlFor={`ps-pay-${r}`}>
@@ -369,6 +389,7 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
                         )}
                         {shift.pay_rate != null && <span className="chip">{payText(shift)}</span>}
                       </span>
+                      {shift.pay_note && <span className="hint">{shift.pay_note}</span>}
                     </div>
                     {shift.status === 'open' && (
                       <button type="button" className="btn small secondary" disabled={busy} onClick={() => cancel(shift)}>

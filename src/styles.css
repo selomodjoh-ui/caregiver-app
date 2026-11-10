@@ -1381,3 +1381,12 @@ h3 {
   font-size: 15px;
   color: var(--berry);
 }
+
+.quote {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--peri);
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}

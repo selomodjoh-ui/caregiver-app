@@ -58,6 +58,8 @@ export interface Shift {
   status: 'open' | 'filled' | 'cancelled';
   /** Whether pay_rate is an hourly rate or a flat amount for the whole shift. */
   pay_type: 'hour' | 'shift';
+  /** The home's own words on what the shift covers or the hours asked for. */
+  pay_note: string | null;
   /** How many caregivers the shift needs. */
   spots: number;
   homes?: HomeInfo | null;

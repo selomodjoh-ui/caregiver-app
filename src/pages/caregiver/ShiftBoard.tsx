@@ -177,6 +177,12 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
               </p>
             )}
             {home?.description && <p className="hint">{home.description}</p>}
+            {shift.pay_note && (
+              <p className="quote">
+                <strong>{shift.pay_type === 'shift' ? 'What this shift covers' : 'Hours asked for'}:</strong>{' '}
+                {shift.pay_note}
+              </p>
+            )}
             {shift.pay_rate == null && <p className="hint">The home has not said what this shift pays. Message them to ask.</p>}
             {shift.notes && <p className="hint">Note from the home: {shift.notes}</p>}
 

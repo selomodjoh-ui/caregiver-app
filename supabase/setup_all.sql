@@ -737,3 +737,10 @@ alter table public.shifts add constraint shifts_pay_type_check check (pay_type i
 
 -- A flat amount for a shift can be larger than an hourly rate.
 alter table public.shifts alter column pay_rate type numeric(8, 2);
+
+-- ===== 0011_shift_definition.sql =====
+-- Lets a home say in its own words what its shift covers, or the hours it is asking for.
+
+alter table public.shifts add column if not exists pay_note text;
+alter table public.shifts drop constraint if exists shifts_pay_note_check;
+alter table public.shifts add constraint shifts_pay_note_check check (char_length(pay_note) <= 300);
