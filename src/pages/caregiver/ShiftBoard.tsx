@@ -44,6 +44,9 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [show, setShow] = useState<'all' | 'fits' | 'day' | 'night'>('all');
+  const [sort, setSort] = useState<'soonest' | 'pay'>('soonest');
+  const [query, setQuery] = useState('');
 
   async function load() {
     if (!supabase) return;
@@ -119,11 +122,24 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
   const past = shifts
     .filter((s) => s.shift_date < today && appFor(s.id)?.status === 'accepted')
     .reverse();
-  const open = upcoming
-    .filter((s) => s.status === 'open' && !offers.includes(s) && !mine.includes(s))
-    .sort(
-      (a, b) =>
-        Number(fits(b)) - Number(fits(a)) || Number(isFeatured(b.homes)) - Number(isFeatured(a.homes)),
+  const allOpen = upcoming.filter((s) => s.status === 'open' && !offers.includes(s) && !mine.includes(s));
+  const totalFor = (s: Shift) => payForShift(s, hoursBetween(s.start_time, s.end_time)) ?? -1;
+  const words = query.trim().toLowerCase();
+  const open = allOpen
+    .filter((s) => {
+      if (show === 'fits' && !fits(s)) return false;
+      if ((show === 'day' || show === 'night') && partOf(s.start_time) !== show) return false;
+      if (!words) return true;
+      return `${s.homes?.name ?? ''} ${s.homes?.address ?? ''}`.toLowerCase().includes(words);
+    })
+    .sort((a, b) =>
+      sort === 'pay'
+        ? totalFor(b) - totalFor(a)
+        : // Soonest first; on the same day, featured homes and shifts that fit come first.
+          a.shift_date.localeCompare(b.shift_date) ||
+          Number(isFeatured(b.homes)) - Number(isFeatured(a.homes)) ||
+          Number(fits(b)) - Number(fits(a)) ||
+          a.start_time.localeCompare(b.start_time),
     );
 
   function card(shift: Shift) {
@@ -311,13 +327,55 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
       )}
 
       <section className="section">
-        <h2>Open shifts</h2>
-        {open.length === 0 ? (
+        <h2>Browse open shifts</h2>
+        {allOpen.length === 0 ? (
           <p className="hint">
-            No open shifts right now. Keep your free times up to date so homes can offer you one.
+            No homes have open shifts right now. Keep your free times up to date so homes can offer you one.
           </p>
         ) : (
-          <ul className="list">{open.map(card)}</ul>
+          <>
+            <div className="filters" role="group" aria-label="Show">
+              {(
+                [
+                  ['all', 'All'],
+                  ['fits', 'Fits my free time'],
+                  ['day', 'Day'],
+                  ['night', 'Night'],
+                ] as const
+              ).map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  className={show === id ? 'on' : ''}
+                  aria-pressed={show === id}
+                  onClick={() => setShow(id)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="row">
+              <div className="field">
+                <label htmlFor="sb-search">Home or town</label>
+                <input id="sb-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} />
+              </div>
+              <div className="field">
+                <label htmlFor="sb-sort">Sort by</label>
+                <select id="sb-sort" value={sort} onChange={(e) => setSort(e.target.value as 'soonest' | 'pay')}>
+                  <option value="soonest">Soonest</option>
+                  <option value="pay">Highest pay</option>
+                </select>
+              </div>
+            </div>
+            <p className="hint" role="status">
+              Showing {open.length} of {allOpen.length} open {allOpen.length === 1 ? 'shift' : 'shifts'}.
+            </p>
+            {open.length === 0 ? (
+              <p className="hint">Nothing matches. Choose "All" or clear the search to see every open shift.</p>
+            ) : (
+              <ul className="list">{open.map(card)}</ul>
+            )}
+          </>
         )}
       </section>
     </>

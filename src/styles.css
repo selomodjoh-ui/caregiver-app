@@ -1406,3 +1406,29 @@ h3 {
 .suggest .applicant {
   background: var(--surface);
 }
+
+/* ---------- Browse filters ---------- */
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filters button {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1.5px solid var(--field-line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: 600 15px var(--body);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.filters button.on {
+  background: var(--berry);
+  border-color: var(--berry);
+  color: #ffffff;
+}
