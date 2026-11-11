@@ -1432,3 +1432,37 @@ h3 {
   border-color: var(--berry);
   color: #ffffff;
 }
+
+/* ---------- Add-another button with a plus ---------- */
+
+.add-row {
+  align-self: flex-start;
+  min-height: 48px;
+  padding: 0 16px 0 6px;
+  border: none;
+  border-radius: 999px;
+  background: var(--peri);
+  color: var(--berry);
+  font: 700 16px var(--body);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.add-row .plus {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--berry);
+  color: #ffffff;
+  font-size: 24px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-row:active .plus {
+  transform: scale(0.9);
+}
