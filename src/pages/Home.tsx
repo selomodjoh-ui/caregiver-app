@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { supabase, type Profile } from '../lib/supabase';
+import { messageOf, supabase, withTimeout, type Profile } from '../lib/supabase';
 import type { HomeInfo, Thread } from '../lib/types';
 import Band from '../components/Band';
 import MyRatings from '../components/MyRatings';
@@ -62,18 +62,30 @@ export default function Home({ session }: Props) {
 
   useEffect(() => {
     if (!supabase) return;
-    supabase
-      .from('profiles')
-      .select('id, role, first_name, surname, sex, phone, address')
-      .eq('id', userId)
-      .maybeSingle()
-      .then(async ({ data, error: err }) => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error: err } = await withTimeout(
+          supabase
+            .from('profiles')
+            .select('id, role, first_name, surname, sex, phone, address')
+            .eq('id', userId)
+            .maybeSingle(),
+        );
+        if (cancelled) return;
         if (err) setError(err.message);
         const p = data as Profile | null;
         setProfile(p);
-        if (p?.role === 'provider') await loadHome();
-        setLoaded(true);
-      });
+        if (p?.role === 'provider') await withTimeout(loadHome());
+      } catch (e) {
+        if (!cancelled) setError(messageOf(e));
+      } finally {
+        if (!cancelled) setLoaded(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [userId]);
 
   function openThread(t: Thread) {

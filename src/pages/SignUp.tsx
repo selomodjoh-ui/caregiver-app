@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { supabase, type Role } from '../lib/supabase';
+import { messageOf, supabase, withTimeout, type Role } from '../lib/supabase';
 import Band from '../components/Band';
 import People from '../components/People';
 
@@ -32,27 +32,34 @@ export default function SignUp({ onSwitch }: Props) {
     if (!supabase) return;
     setError('');
     setBusy(true);
-    const { data, error: err } = await supabase.auth.signUp({
-      email: email.trim(),
-      password,
-      options: {
-        data: {
-          role,
-          first_name: firstName.trim(),
-          surname: surname.trim(),
-          sex: sex || null,
-          phone: phone.trim() || null,
-          address: address.trim() || null,
-        },
-      },
-    });
-    setBusy(false);
-    if (err) {
-      setError(err.message);
-      return;
+    try {
+      const { data, error: err } = await withTimeout(
+        supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: {
+            data: {
+              role,
+              first_name: firstName.trim(),
+              surname: surname.trim(),
+              sex: sex || null,
+              phone: phone.trim() || null,
+              address: address.trim() || null,
+            },
+          },
+        }),
+      );
+      if (err) {
+        setError(err.message);
+        return;
+      }
+      // With email confirmation on, there is no session until the link is clicked.
+      if (!data.session) setSent(true);
+    } catch (e) {
+      setError(messageOf(e));
+    } finally {
+      setBusy(false);
     }
-    // With email confirmation on, there is no session until the link is clicked.
-    if (!data.session) setSent(true);
   }
 
   if (sent) {

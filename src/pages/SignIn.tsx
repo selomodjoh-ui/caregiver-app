@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { supabase } from '../lib/supabase';
+import { messageOf, supabase, withTimeout } from '../lib/supabase';
 import Band from '../components/Band';
 import People from '../components/People';
 
@@ -19,12 +19,24 @@ export default function SignIn({ onSwitch }: Props) {
     if (!supabase) return;
     setError('');
     setBusy(true);
-    const { error: err } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    });
-    setBusy(false);
-    if (err) setError(err.message);
+    try {
+      const { error: err } = await withTimeout(
+        supabase.auth.signInWithPassword({ email: email.trim(), password }),
+      );
+      if (err) {
+        setError(
+          err.message === 'Email not confirmed'
+            ? 'Your email is not confirmed yet. Open the confirmation email we sent and click the link, then sign in.'
+            : err.message === 'Invalid login credentials'
+              ? 'That email and password do not match an account. Check both and try again.'
+              : err.message,
+        );
+      }
+    } catch (e) {
+      setError(messageOf(e));
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
