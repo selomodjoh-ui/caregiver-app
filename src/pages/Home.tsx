@@ -30,12 +30,12 @@ const CAREGIVER_TABS: Tab<TabId>[] = [
 ];
 
 const PROVIDER_TABS: Tab<TabId>[] = [
-  { id: 'shifts', label: 'Shifts', icon: icons.shifts },
-  { id: 'find', label: 'Who is free', icon: icons.search },
-  { id: 'reports', label: 'Reports', icon: icons.report },
-  { id: 'messages', label: 'Messages', icon: icons.chat },
-  { id: 'home', label: 'My home', icon: icons.home },
   { id: 'account', label: 'Me', icon: icons.person },
+  { id: 'home', label: 'My home', icon: icons.home },
+  { id: 'find', label: 'Who is free', icon: icons.search },
+  { id: 'shifts', label: 'Shifts', icon: icons.shifts },
+  { id: 'messages', label: 'Messages', icon: icons.chat },
+  { id: 'reports', label: 'Reports', icon: icons.report },
 ];
 
 function greeting(): string {
