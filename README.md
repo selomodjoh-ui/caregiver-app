@@ -19,6 +19,8 @@ A job-matching web app for Washington State that connects licensed caregivers wi
   attention, credential and licence verification, packages and prices, every account and shift.
   Make someone an admin with:
   `insert into public.admins (user_id) select id from auth.users where email = 'THEIR EMAIL';`
+- A public web page at `/welcome/` (`public/welcome/index.html`): what ShiftKind is, how a shift
+  gets filled, the planned 75-hour training, and screenshots of the app.
 
 Not built yet: profile and home photos, online payments, email or text
 alerts, automatic licence checks. Credentials and home licences are verified by hand in the
