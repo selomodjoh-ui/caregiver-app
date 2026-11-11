@@ -1466,3 +1466,83 @@ h3 {
 .add-row:active .plus {
   transform: scale(0.9);
 }
+
+/* ---------- Admin screen ---------- */
+
+body.wide .app {
+  max-width: 1120px;
+}
+
+body.wide h1,
+body.wide .band-lead {
+  max-width: none;
+}
+
+.btn.small.back {
+  align-self: flex-start;
+  margin-top: 8px;
+  background: var(--surface);
+}
+
+.admin a {
+  color: var(--berry);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.badge {
+  margin-left: 8px;
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--sun);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+  display: inline-block;
+  text-align: center;
+}
+
+.count {
+  min-width: 44px;
+  height: 44px;
+  padding: 0 10px;
+  border-radius: 14px;
+  background: var(--butter);
+  color: #8a3a1c;
+  font: 700 20px var(--display);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.package-box {
+  align-self: stretch;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--ground);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.price-row {
+  align-self: stretch;
+  align-items: end;
+}
+
+@media (min-width: 760px) {
+  .list.grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .stats.wide-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .admin .field input[type='search'] {
+    max-width: 420px;
+  }
+}

@@ -14,6 +14,7 @@ import HomeProfile from './provider/HomeProfile';
 import Packages from './provider/Packages';
 import ProviderShifts from './provider/ProviderShifts';
 import Reports from './provider/Reports';
+import Admin from './admin/Admin';
 
 interface Props {
   session: Session;
@@ -53,6 +54,8 @@ export default function Home({ session }: Props) {
   const [thread, setThread] = useState<Thread | null>(null);
   const [error, setError] = useState('');
   const [loaded, setLoaded] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
 
   async function loadHome() {
     if (!supabase) return;
@@ -77,6 +80,10 @@ export default function Home({ session }: Props) {
         const p = data as Profile | null;
         setProfile(p);
         if (p?.role === 'provider') await withTimeout(loadHome());
+        // Shows the admin button only to people on the admins list. Fails quietly if not set up.
+        supabase.rpc('is_admin').then(({ data: admin }) => {
+          if (!cancelled) setIsAdmin(admin === true);
+        });
       } catch (e) {
         if (!cancelled) setError(messageOf(e));
       } finally {
@@ -125,6 +132,8 @@ export default function Home({ session }: Props) {
       </>
     );
   }
+
+  if (adminOpen && isAdmin) return <Admin onClose={() => setAdminOpen(false)} />;
 
   const isProvider = profile.role === 'provider';
   const tabs = isProvider ? PROVIDER_TABS : CAREGIVER_TABS;
@@ -201,6 +210,18 @@ export default function Home({ session }: Props) {
                 </div>
               )}
             </dl>
+            {isAdmin && (
+              <button
+                type="button"
+                className="btn"
+                onClick={() => {
+                  setAdminOpen(true);
+                  window.scrollTo(0, 0);
+                }}
+              >
+                Open the admin screen
+              </button>
+            )}
             <button type="button" className="btn secondary" onClick={() => supabase?.auth.signOut()}>
               Sign out
             </button>

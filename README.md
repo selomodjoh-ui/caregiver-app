@@ -15,6 +15,10 @@ A job-matching web app for Washington State that connects licensed caregivers wi
 - Packages for homes: a free 30-day pilot, Standard and Plus. Homes ask for a package in the
   app; you invoice by hand and then set `homes.plan` and `homes.plan_until` in the Table Editor.
   Prices live in the `plans` table. Plus homes are listed first and get printable credential reports.
+- An admin screen (Me > Open the admin screen) for people listed in the `admins` table: what needs
+  attention, credential and licence verification, packages and prices, every account and shift.
+  Make someone an admin with:
+  `insert into public.admins (user_id) select id from auth.users where email = 'THEIR EMAIL';`
 
 Not built yet: profile and home photos, online payments, email or text
 alerts, automatic licence checks. Credentials and home licences are verified by hand in the
