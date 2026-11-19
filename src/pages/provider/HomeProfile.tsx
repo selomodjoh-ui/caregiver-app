@@ -1,6 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { supabase } from '../../lib/supabase';
 import type { HomeInfo } from '../../lib/types';
+import LocationPicker from '../../components/LocationPicker';
+import { pointOf, type Point } from '../../lib/geo';
 
 interface Props {
   userId: string;
@@ -24,6 +26,7 @@ export default function HomeProfile({ userId, home, onSaved }: Props) {
   const [years, setYears] = useState('');
   const [mix, setMix] = useState<Record<MixKey, number>>({ bed_bound: 0, assisted: 0, independent: 0 });
   const [description, setDescription] = useState('');
+  const [spot, setSpot] = useState<Point | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
@@ -37,6 +40,7 @@ export default function HomeProfile({ userId, home, onSaved }: Props) {
     setYears(home.years_operating != null ? String(home.years_operating) : '');
     setMix({ bed_bound: home.bed_bound, assisted: home.assisted, independent: home.independent });
     setDescription(home.description ?? '');
+    setSpot(pointOf(home));
   }, [home]);
 
   const total = mix.bed_bound + mix.assisted + mix.independent;
@@ -60,11 +64,17 @@ export default function HomeProfile({ userId, home, onSaved }: Props) {
       years_operating: years === '' ? null : Number(years),
       ...mix,
       description: description.trim() || null,
+      // Sent only when there is a pin to save or clear, so the form still works before the map is switched on.
+      ...(spot || pointOf(home) ? { lat: spot?.lat ?? null, lng: spot?.lng ?? null } : {}),
       updated_at: new Date().toISOString(),
     });
     setBusy(false);
     if (err) {
-      setError(err.message);
+      setError(
+        /\b(lat|lng)\b/.test(err.message)
+          ? 'The map is not switched on yet, so the pin could not be saved. Remove the pin and save again.'
+          : err.message,
+      );
       return;
     }
     setSaved(true);
@@ -134,6 +144,24 @@ export default function HomeProfile({ userId, home, onSaved }: Props) {
           <label htmlFor="hp-desc">Brief description of residents' needs</label>
           <textarea id="hp-desc" rows={3} value={description} onChange={(e) => { setDescription(e.target.value); setSaved(false); }} />
           <span className="hint">Keep it general. No resident names or details.</span>
+        </div>
+
+        <div className="field">
+          <span className="legend">Where is your home on the map?</span>
+          <span className="hint">
+            Caregivers browsing the map see this pin and how far away you are. Tap the map to place it, then save.
+          </span>
+          <span className={`chip ${spot ? 'ok' : ''}`}>{spot ? 'Pin placed' : 'No pin yet'}</span>
+          <LocationPicker
+            mode="pin"
+            label="Map for placing your home. Tap to drop the pin."
+            address={address}
+            value={spot}
+            onChange={(p) => {
+              setSpot(p);
+              setSaved(false);
+            }}
+          />
         </div>
 
         {error && (

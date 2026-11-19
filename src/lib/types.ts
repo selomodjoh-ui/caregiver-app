@@ -44,6 +44,8 @@ export interface HomeInfo {
   plan: string;
   plan_until: string | null;
   requested_plan: string | null;
+  lat?: number | null;
+  lng?: number | null;
 }
 
 export interface Shift {

@@ -3,6 +3,7 @@
 -- It is safe to run more than once.
 
 -- ===== 0001_profiles.sql =====
+-- Run this once in the Supabase dashboard: SQL Editor > New query > paste > Run.
 -- It creates the profiles table and fills it in automatically when someone signs up.
 
 create table if not exists public.profiles (
@@ -56,6 +57,7 @@ create trigger on_auth_user_created
   for each row execute function public.handle_new_user();
 
 -- ===== 0002_credentials.sql =====
+-- Run this once in the Supabase dashboard: SQL Editor > New query > paste > Run.
 -- It creates the credentials table and a private place to store uploaded documents.
 
 create table if not exists public.credentials (
@@ -115,7 +117,9 @@ create policy "Remove own credential files" on storage.objects
   using (bucket_id = 'credentials' and (storage.foldername(name))[1] = (select auth.uid())::text);
 
 -- ===== 0003_shifts_and_chat.sql =====
+-- Run this once in the Supabase dashboard: SQL Editor > New query > paste > Run.
 -- Adds availability, home profiles, shifts, applications and chat.
+-- Safe to run more than once.
 
 -- Who is asking: 'caregiver' or 'provider'.
 create or replace function public.my_role()
@@ -397,7 +401,9 @@ grant select, update on public.profiles to authenticated;
 grant select, insert, update, delete on public.credentials to authenticated;
 
 -- ===== 0004_ratings.sql =====
+-- Run this once in the Supabase dashboard: SQL Editor > New query > paste > Run.
 -- Adds ratings: after a shift, the caregiver rates the home and the home rates the caregiver.
+-- Safe to run more than once.
 
 create table if not exists public.ratings (
   id uuid primary key default gen_random_uuid(),
@@ -455,7 +461,9 @@ grant select on public.rating_summary, public.rating_feed to authenticated;
 grant select, insert on public.ratings to authenticated;
 
 -- ===== 0005_direct_messages.sql =====
+-- Run this once in the Supabase dashboard: SQL Editor > New query > paste > Run.
 -- Lets a provider message a caregiver directly, without a shift behind it.
+-- Safe to run more than once.
 
 -- A direct conversation has no shift; it is identified by the home and the caregiver.
 alter table public.messages alter column shift_id drop not null;
@@ -518,7 +526,9 @@ create policy "Send in own conversations" on public.messages
   );
 
 -- ===== 0006_packages.sql =====
+-- Run this once in the Supabase dashboard: SQL Editor > New query > paste > Run.
 -- Adds packages for homes: a free pilot, Standard and Plus.
+-- Safe to run more than once.
 
 create table if not exists public.plans (
   id text primary key,
@@ -607,7 +617,9 @@ create policy "Providers read availability" on public.availability
   for select using (public.my_role() = 'provider' and public.home_active(auth.uid()));
 
 -- ===== 0007_pilot_30_days.sql =====
+-- Run this once in the Supabase dashboard, after the packages script.
 -- Changes the free pilot from 90 days to 30 days for homes that join from now on.
+-- Safe to run more than once.
 
 create or replace function public.protect_home_verification()
 returns trigger
@@ -638,8 +650,10 @@ set features = array_replace(features, 'Free for your first 90 days', 'Free for 
 where id = 'pilot';
 
 -- ===== 0008_day_and_night.sql =====
+-- Run this once in the Supabase dashboard: SQL Editor > New query > paste > Run.
 -- Free times become Day and Night only (was morning, evening, night).
 -- Existing entries are carried over: morning becomes day, evening becomes night.
+-- Safe to run more than once.
 
 alter table public.availability drop constraint if exists availability_part_check;
 
@@ -657,7 +671,9 @@ alter table public.availability
   add constraint availability_part_check check (part in ('day', 'night'));
 
 -- ===== 0009_caregivers_needed.sql =====
+-- Run this once in the Supabase dashboard: SQL Editor > New query > paste > Run.
 -- A shift can now need more than one caregiver.
+-- Safe to run more than once.
 
 alter table public.shifts add column if not exists spots integer not null default 1;
 alter table public.shifts drop constraint if exists shifts_spots_check;
@@ -729,7 +745,9 @@ end;
 $$;
 
 -- ===== 0010_pay_per_hour_or_shift.sql =====
+-- Run this once in the Supabase dashboard: SQL Editor > New query > paste > Run.
 -- A shift's pay can be an hourly rate or a flat amount for the whole shift.
+-- Safe to run more than once.
 
 alter table public.shifts add column if not exists pay_type text not null default 'hour';
 alter table public.shifts drop constraint if exists shifts_pay_type_check;
@@ -739,15 +757,19 @@ alter table public.shifts add constraint shifts_pay_type_check check (pay_type i
 alter table public.shifts alter column pay_rate type numeric(8, 2);
 
 -- ===== 0011_shift_definition.sql =====
+-- Run this once in the Supabase dashboard: SQL Editor > New query > paste > Run.
 -- Lets a home say in its own words what its shift covers, or the hours it is asking for.
+-- Safe to run more than once.
 
 alter table public.shifts add column if not exists pay_note text;
 alter table public.shifts drop constraint if exists shifts_pay_note_check;
 alter table public.shifts add constraint shifts_pay_note_check check (char_length(pay_note) <= 300);
 
 -- ===== 0012_preference_and_suggestions.sql =====
+-- Run this once in the Supabase dashboard: SQL Editor > New query > paste > Run.
 -- A shift can ask for a female or male caregiver, with a stated reason,
 -- and the app can suggest caregivers who match a shift.
+-- Safe to run more than once.
 
 alter table public.shifts add column if not exists preferred_sex text;
 alter table public.shifts add column if not exists preference_reason text;
@@ -826,7 +848,9 @@ revoke all on function public.suggest_caregivers(uuid) from public, anon;
 grant execute on function public.suggest_caregivers(uuid) to authenticated;
 
 -- ===== 0013_admin.sql =====
+-- Run this once in the Supabase dashboard: SQL Editor > New query > paste > Run.
 -- Adds the admin screen's data and actions. Only people listed in the admins table can use them.
+-- Safe to run more than once.
 
 create table if not exists public.admins (
   user_id uuid primary key references auth.users (id) on delete cascade,
@@ -1104,3 +1128,44 @@ grant execute on function
   public.admin_verify_home(uuid, boolean), public.admin_set_plan(uuid, text, date),
   public.admin_set_price(text, numeric)
 to authenticated;
+
+-- ===== 0014_map.sql =====
+-- Step 14: the map.
+-- Homes can place a pin where they are. Caregivers can choose to share a
+-- general area (never an exact address) so homes can see who is nearby.
+
+alter table public.homes add column if not exists lat double precision;
+alter table public.homes add column if not exists lng double precision;
+
+alter table public.homes drop constraint if exists homes_lat_range;
+alter table public.homes add constraint homes_lat_range check (lat is null or (lat between -90 and 90));
+alter table public.homes drop constraint if exists homes_lng_range;
+alter table public.homes add constraint homes_lng_range check (lng is null or (lng between -180 and 180));
+alter table public.homes drop constraint if exists homes_pin_complete;
+alter table public.homes add constraint homes_pin_complete check ((lat is null) = (lng is null));
+
+-- A caregiver's area. The columns hold two decimal places only, which is
+-- about one kilometre, so the database cannot store a precise position
+-- even if the app sent one.
+create table if not exists public.caregiver_areas (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  lat numeric(5, 2) not null check (lat between -90 and 90),
+  lng numeric(6, 2) not null check (lng between -180 and 180),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.caregiver_areas enable row level security;
+
+drop policy if exists "Caregivers manage own area" on public.caregiver_areas;
+create policy "Caregivers manage own area" on public.caregiver_areas
+  for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id and public.my_role() = 'caregiver');
+
+drop policy if exists "Active homes read areas" on public.caregiver_areas;
+create policy "Active homes read areas" on public.caregiver_areas
+  for select using (public.my_role() = 'provider' and public.home_active(auth.uid()));
+
+revoke all on public.caregiver_areas from anon;
+grant select, insert, update, delete on public.caregiver_areas to authenticated;
+

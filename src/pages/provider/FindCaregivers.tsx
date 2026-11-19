@@ -17,6 +17,8 @@ import {
   type Thread,
 } from '../../lib/types';
 import CaregiverSummary from './CaregiverSummary';
+import MapView, { type Pin } from '../../components/MapView';
+import { milesBetween, milesText, pointOf, type Point } from '../../lib/geo';
 import type { RatingSummary } from '../../components/Rating';
 
 interface Props {
@@ -75,6 +77,9 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
   const [shiftId, setShiftId] = useState('');
   const [more, setMore] = useState<{ card: CaregiverCard; slots: string[] }[] | null>(null);
   const [searched, setSearched] = useState(false);
+  const [view, setView] = useState<'list' | 'map'>('list');
+  const [areas, setAreas] = useState<Record<string, Point>>({});
+  const [cell, setCell] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -197,7 +202,29 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
   useEffect(() => {
     loadShifts();
     search();
+    // Areas caregivers chose to share. Empty until the map step is run in the database.
+    supabase
+      ?.from('caregiver_areas')
+      .select('user_id, lat, lng')
+      .then(({ data }) => {
+        const found: Record<string, Point> = {};
+        for (const row of data ?? []) {
+          const p = pointOf(row);
+          if (p) found[row.user_id as string] = p;
+        }
+        setAreas(found);
+      });
   }, []);
+
+  const homeSpot = pointOf(home);
+  const milesTo = (id: string) => (homeSpot && areas[id] ? milesBetween(homeSpot, areas[id]) : null);
+  const cellOf = (p: Point) => `${p.lat},${p.lng}`;
+
+  function showMap() {
+    setView('map');
+    // The map shows everyone nearby, so bring in caregivers beyond the searched times too.
+    if (more === null && !busy) loadMore();
+  }
 
   // Offer a shift that matches one of the searched times first, if there is one.
   const matching = shifts.filter((s) =>
@@ -234,6 +261,11 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
             required={chosen?.requirements}
             rating={summaries.find((x) => x.ratee_id === card.id)}
           />
+          {milesTo(card.id) != null && (
+            <span className="chips">
+              <span className="chip">{milesText(milesTo(card.id)!)}</span>
+            </span>
+          )}
           {!slots && wanted.length > 1 && covered[card.id] && (
             <span className="chips">
               <span className={`chip ${covered[card.id].length === wanted.length ? 'ok' : 'warn'}`}>
@@ -288,6 +320,23 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
       </li>
     );
   }
+
+  // Everyone we know about who shared an area, grouped by area so overlapping circles open together.
+  const people: { card: CaregiverCard; slots?: string[]; free: boolean }[] = [
+    ...cards.map((card) => ({ card, free: true })),
+    ...(more ?? []).map((m) => ({ card: m.card, slots: m.slots, free: false })),
+  ].filter((x) => areas[x.card.id]);
+  const pins: Pin[] = [];
+  for (const x of people) {
+    const p = areas[x.card.id];
+    const pin = pins.find((y) => y.id === cellOf(p));
+    if (pin) {
+      pin.badge = String(Number(pin.badge) + 1);
+      if (x.free) pin.quiet = false;
+    } else pins.push({ id: cellOf(p), kind: 'area', ...p, badge: '1', label: '', quiet: !x.free });
+  }
+  for (const pin of pins) pin.label = pin.badge === '1' ? '1 caregiver' : `${pin.badge} caregivers`;
+  const inCell = people.filter((x) => cellOf(areas[x.card.id]) === cell);
 
   if (!home || !isHomeActive(home)) {
     return (
@@ -406,6 +455,54 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
         <p className="hint">Post a shift first, then you can offer it to someone here.</p>
       )}
 
+      <div className="segmented" role="group" aria-label="View">
+        <button type="button" className={view === 'list' ? 'on' : ''} aria-pressed={view === 'list'} onClick={() => setView('list')}>
+          List
+        </button>
+        <button type="button" className={view === 'map' ? 'on' : ''} aria-pressed={view === 'map'} onClick={showMap}>
+          Map
+        </button>
+      </div>
+
+      {view === 'map' && (
+        <>
+          <MapView
+            label="Map of caregivers near your home"
+            pins={pins}
+            me={homeSpot}
+            meKind="home"
+            selectedId={cell}
+            onSelect={setCell}
+          />
+          {!homeSpot && (
+            <p className="hint">
+              Your home is not on the map yet.{' '}
+              <button type="button" className="link" onClick={onNeedHome}>
+                Place your pin in My home
+              </button>{' '}
+              to see how far away each caregiver is.
+            </p>
+          )}
+          {pins.length === 0 ? (
+            <p className="hint">
+              No caregivers have shared their area yet. They appear here as they do. Everyone is still in the list.
+            </p>
+          ) : inCell.length > 0 ? (
+            <>
+              <h3>{inCell.length === 1 ? '1 caregiver in this area' : `${inCell.length} caregivers in this area`}</h3>
+              <ul className="list">{inCell.map((x) => row(x.card, x.slots))}</ul>
+            </>
+          ) : (
+            <p className="hint" role="status">
+              Each circle is the general area a caregiver lives in, about a mile wide. Tap a circle to see who is
+              there. Filled badges are free for the times you asked for.
+            </p>
+          )}
+        </>
+      )}
+
+      {view === 'list' && (
+        <>
       {searched && cards.length === 0 && (
         <p className="hint">
           No caregivers have marked {wanted.length > 1 ? 'any of those times' : 'that time'} as free yet. Tap "Show
@@ -434,6 +531,8 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
               <ul className="list">{more.map((m) => row(m.card, m.slots))}</ul>
             </>
           )}
+        </>
+      )}
         </>
       )}
     </section>

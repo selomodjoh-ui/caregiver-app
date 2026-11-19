@@ -4,6 +4,7 @@ import { messageOf, supabase, withTimeout, type Profile } from '../lib/supabase'
 import type { HomeInfo, Thread } from '../lib/types';
 import Band from '../components/Band';
 import MyRatings from '../components/MyRatings';
+import MyArea from '../components/MyArea';
 import TabBar, { icons, type Tab } from '../components/TabBar';
 import Credentials from './Credentials';
 import Messages from './Messages';
@@ -179,6 +180,7 @@ export default function Home({ session }: Props) {
           />
         )}
         {tab === 'account' && <MyRatings userId={userId} />}
+        {tab === 'account' && !isProvider && <MyArea userId={userId} />}
         {tab === 'account' && (
           <section className="section">
             <h2>Your details</h2>

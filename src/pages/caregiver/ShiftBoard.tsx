@@ -20,6 +20,9 @@ import {
   type Thread,
 } from '../../lib/types';
 
+import MapView, { type Pin } from '../../components/MapView';
+import { milesBetween, milesText, pointOf, whereAmI, type Point } from '../../lib/geo';
+
 const money = (n: number) => `$${n.toFixed(2)}`;
 const hoursLabel = (n: number) => `${Number.isInteger(n) ? n : n.toFixed(1)} ${n === 1 ? 'hour' : 'hours'}`;
 
@@ -45,11 +48,25 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [show, setShow] = useState<'all' | 'fits' | 'day' | 'night'>('all');
-  const [sort, setSort] = useState<'soonest' | 'pay'>('soonest');
+  const [sort, setSort] = useState<'soonest' | 'pay' | 'near'>('soonest');
+  const [view, setView] = useState<'list' | 'map'>('list');
+  const [me, setMe] = useState<Point | null>(null);
+  const [meNote, setMeNote] = useState('');
+  const [pinId, setPinId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
 
   async function load() {
     if (!supabase) return;
+    // The caregiver's saved area, if they shared one. Missing until the map step is run in the database.
+    supabase
+      .from('caregiver_areas')
+      .select('lat, lng')
+      .eq('user_id', userId)
+      .maybeSingle()
+      .then(({ data }) => {
+        const p = pointOf(data);
+        if (p) setMe((now) => now ?? p);
+      });
     const [s, a, f, c, r, g] = await Promise.all([
       supabase
         .from('shifts')
@@ -124,6 +141,10 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
     .reverse();
   const allOpen = upcoming.filter((s) => s.status === 'open' && !offers.includes(s) && !mine.includes(s));
   const totalFor = (s: Shift) => payForShift(s, hoursBetween(s.start_time, s.end_time)) ?? -1;
+  const milesTo = (s: Shift) => {
+    const p = pointOf(s.homes);
+    return me && p ? milesBetween(me, p) : null;
+  };
   const words = query.trim().toLowerCase();
   const open = allOpen
     .filter((s) => {
@@ -135,12 +156,37 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
     .sort((a, b) =>
       sort === 'pay'
         ? totalFor(b) - totalFor(a)
-        : // Soonest first; on the same day, featured homes and shifts that fit come first.
+        : sort === 'near'
+          ? (milesTo(a) ?? 1e9) - (milesTo(b) ?? 1e9) || a.shift_date.localeCompare(b.shift_date)
+          : // Soonest first; on the same day, featured homes and shifts that fit come first.
           a.shift_date.localeCompare(b.shift_date) ||
           Number(isFeatured(b.homes)) - Number(isFeatured(a.homes)) ||
           Number(fits(b)) - Number(fits(a)) ||
           a.start_time.localeCompare(b.start_time),
     );
+
+  // One pin per home, counting that home's open shifts in the current filter.
+  const pins: Pin[] = [];
+  for (const s of open) {
+    const p = pointOf(s.homes);
+    if (!p) continue;
+    const pin = pins.find((x) => x.id === s.home_id);
+    if (pin) pin.badge = String(Number(pin.badge) + 1);
+    else pins.push({ id: s.home_id, kind: 'home', ...p, badge: '1', label: s.homes?.name ?? 'Adult family home' });
+  }
+  for (const pin of pins) pin.label = `${pin.label}, ${pin.badge} open ${pin.badge === '1' ? 'shift' : 'shifts'}`;
+  const atPin = open.filter((s) => s.home_id === pinId && pointOf(s.homes));
+  const unpinned = open.filter((s) => !pointOf(s.homes)).length;
+
+  async function useMyLocation() {
+    setMeNote('Finding you…');
+    try {
+      setMe(await whereAmI());
+      setMeNote('');
+    } catch (e) {
+      setMeNote(e instanceof Error ? e.message : 'We could not find your location.');
+    }
+  }
 
   function card(shift: Shift) {
     const app = appFor(shift.id);
@@ -176,6 +222,7 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
             {app?.status === 'offered' && <span className="chip warn">Offered to you</span>}
             {app?.status === 'declined' && <span className="chip bad">Not selected</span>}
             {isFeatured(home) && <span className="chip warn">Featured home</span>}
+            {milesTo(shift) != null && <span className="chip">{milesText(milesTo(shift)!)}</span>}
             {fits(shift) && <span className="chip ok">Fits your free time</span>}
             {shift.preferred_sex && (
               <span className="chip">{shift.preferred_sex === 'female' ? 'Female' : 'Male'} caregiver requested</span>
@@ -361,19 +408,65 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
               </div>
               <div className="field">
                 <label htmlFor="sb-sort">Sort by</label>
-                <select id="sb-sort" value={sort} onChange={(e) => setSort(e.target.value as 'soonest' | 'pay')}>
+                <select id="sb-sort" value={sort} onChange={(e) => setSort(e.target.value as 'soonest' | 'pay' | 'near')}>
                   <option value="soonest">Soonest</option>
                   <option value="pay">Highest pay</option>
+                  {me && <option value="near">Nearest</option>}
                 </select>
               </div>
             </div>
             <p className="hint" role="status">
               Showing {open.length} of {allOpen.length} open {allOpen.length === 1 ? 'shift' : 'shifts'}.
             </p>
+            <div className="segmented" role="group" aria-label="View">
+              <button type="button" className={view === 'list' ? 'on' : ''} aria-pressed={view === 'list'} onClick={() => setView('list')}>
+                List
+              </button>
+              <button type="button" className={view === 'map' ? 'on' : ''} aria-pressed={view === 'map'} onClick={() => setView('map')}>
+                Map
+              </button>
+            </div>
+            {!me && (
+              <div className="near-me">
+                <p className="hint">See how far each shift is from you.</p>
+                <button type="button" className="btn secondary small" onClick={useMyLocation}>
+                  Use where I am now
+                </button>
+                {meNote && (
+                  <p className="hint" role="status">
+                    {meNote}
+                  </p>
+                )}
+              </div>
+            )}
             {open.length === 0 ? (
               <p className="hint">Nothing matches. Choose "All" or clear the search to see every open shift.</p>
-            ) : (
+            ) : view === 'list' ? (
               <ul className="list">{open.map(card)}</ul>
+            ) : (
+              <>
+                <MapView
+                  label="Map of homes with open shifts"
+                  pins={pins}
+                  me={me}
+                  selectedId={pinId}
+                  onSelect={setPinId}
+                />
+                {pins.length === 0 ? (
+                  <p className="hint">None of these homes has placed itself on the map yet. Use the list to see them.</p>
+                ) : atPin.length > 0 ? (
+                  <>
+                    <h3>{atPin[0].homes?.name ?? 'This home'}</h3>
+                    <ul className="list">{atPin.map(card)}</ul>
+                  </>
+                ) : (
+                  <p className="hint" role="status">
+                    Tap a pin to see that home's shifts. The number on a pin is how many shifts it has open.
+                    {unpinned > 0 &&
+                      ` ${unpinned} more ${unpinned === 1 ? 'shift is' : 'shifts are'} at homes not on the map yet. Find them in the list.`}
+                  </p>
+                )}
+              </>
             )}
           </>
         )}
