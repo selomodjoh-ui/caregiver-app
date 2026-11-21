@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { Session } from '@supabase/supabase-js';
+import type { EmailOtpType, Session } from '@supabase/supabase-js';
 import { isConfigured, supabase } from './lib/supabase';
 import Band from './components/Band';
 import SignIn from './pages/SignIn';
@@ -11,6 +11,7 @@ type View = 'signin' | 'signup';
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notice, setNotice] = useState('');
   const [view, setView] = useState<View>(() => (location.search.includes('signin') ? 'signin' : 'signup'));
 
   useEffect(() => {
@@ -18,10 +19,25 @@ export default function App() {
       setLoading(false);
       return;
     }
-    supabase.auth.getSession().then(({ data }) => {
+    const client = supabase;
+    // Links in our emails arrive as /?token_hash=...&type=... on our own address.
+    const params = new URLSearchParams(location.search);
+    const tokenHash = params.get('token_hash');
+    const type = params.get('type') as EmailOtpType | null;
+    const start = async () => {
+      if (tokenHash && type) {
+        const { error } = await client.auth.verifyOtp({ token_hash: tokenHash, type });
+        history.replaceState(null, '', '/');
+        if (error) {
+          setView('signin');
+          setNotice('That link has expired or was already used. Sign in below, or sign up again to get a new one.');
+        }
+      }
+      const { data } = await client.auth.getSession();
       setSession(data.session);
       setLoading(false);
-    });
+    };
+    start();
     const { data: listener } = supabase.auth.onAuthStateChange((_event, next) => {
       setSession(next);
     });
@@ -55,6 +71,11 @@ export default function App() {
 
   return (
     <div className="app">
+      {!session && notice && (
+        <p className="notice-bar" role="status">
+          {notice}
+        </p>
+      )}
       {session ? (
         <Home session={session} />
       ) : view === 'signup' ? (
