@@ -15,6 +15,7 @@ import HomeProfile from './provider/HomeProfile';
 import Packages from './provider/Packages';
 import ProviderShifts from './provider/ProviderShifts';
 import Reports from './provider/Reports';
+import Help from '../components/Help';
 import Admin from './admin/Admin';
 
 interface Props {
@@ -228,6 +229,7 @@ export default function Home({ session }: Props) {
             <button type="button" className="btn secondary" onClick={() => supabase?.auth.signOut()}>
               Sign out
             </button>
+            <Help />
           </section>
         )}
       </main>

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { messageOf, supabase, withTimeout, type Role } from '../lib/supabase';
 import Band from '../components/Band';
+import Help from '../components/Help';
 import People from '../components/People';
 
 interface Props {
@@ -244,6 +245,7 @@ export default function SignUp({ onSwitch }: Props) {
             See how it works
           </a>
         </p>
+        <Help />
       </main>
     </>
   );

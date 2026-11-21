@@ -1704,3 +1704,16 @@ body.wide .band-lead {
 .notice-bar.inline {
   margin: 0;
 }
+
+.help {
+  margin-top: 20px;
+  color: var(--muted, #5b6f69);
+  font-size: 15px;
+  text-align: center;
+}
+
+.help a {
+  color: var(--berry);
+  font-weight: 600;
+  white-space: nowrap;
+}
