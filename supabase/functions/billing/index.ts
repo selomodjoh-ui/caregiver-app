@@ -36,7 +36,9 @@ async function db(path: string, init: RequestInit = {}) {
     },
   });
   if (!res.ok) throw new Error(`Database said ${res.status}: ${await res.text()}`);
-  return res.status === 204 ? null : await res.json();
+  // Inserts and updates answer with an empty body unless rows are asked for.
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 async function stripe(path: string, params: Record<string, string>) {
