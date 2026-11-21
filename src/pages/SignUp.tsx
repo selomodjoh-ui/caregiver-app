@@ -54,6 +54,12 @@ export default function SignUp({ onSwitch }: Props) {
         setError(err.message);
         return;
       }
+      // When the email already has an account, the service answers as if it worked but sends
+      // nothing. It marks that case with an empty list of sign-in methods, so say so plainly.
+      if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+        setError('This email already has a ShiftKind account. Sign in with it, or use a different email.');
+        return;
+      }
       // With email confirmation on, there is no session until the link is clicked.
       if (!data.session) setSent(true);
     } catch (e) {
