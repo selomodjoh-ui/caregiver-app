@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#e3ece6" />
     <title>ShiftKind</title>
+    <script>
+      // First-time visitors see the welcome page. Anyone signed in, or arriving
+      // from a button or an email link, goes straight into the app.
+      try {
+        if (
+          location.pathname === '/' && !location.search && !location.hash &&
+          !localStorage.getItem('sb-tnukrnluhjvalyrkslef-auth-token')
+        ) location.replace('/welcome/');
+      } catch (e) {}
+    </script>
     <meta name="description" content="ShiftKind connects licensed caregivers with adult family homes in Washington State that need shifts covered." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

@@ -11,7 +11,7 @@ type View = 'signin' | 'signup';
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<View>('signup');
+  const [view, setView] = useState<View>(() => (location.search.includes('signin') ? 'signin' : 'signup'));
 
   useEffect(() => {
     if (!supabase) {

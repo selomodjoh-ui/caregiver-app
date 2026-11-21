@@ -31,7 +31,7 @@ Supabase Table Editor (`credentials.status`, `homes.license_verified`).
 - **App:** React and TypeScript, built with Vite. It runs in any phone or computer browser.
 - **Backend:** Supabase (logins, database, file storage).
 - **Hosting:** Cloudflare Workers, connected to this repository. Every push to `main` rebuilds
-  the live site at https://caregiver-app.selomodjoh.workers.dev
+  the live site at https://getshiftkind.com (also https://caregiver-app.selomodjoh.workers.dev)
 
 ## One-time setup
 
