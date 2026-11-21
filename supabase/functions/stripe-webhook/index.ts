@@ -4,6 +4,8 @@
 
 const env = (name: string) => Deno.env.get(name) ?? '';
 const SUPABASE_URL = env('SUPABASE_URL');
+// The key is accepted under either name, since it was first saved as STRIPE_SECRET.
+const STRIPE_KEY = env('STRIPE_SECRET_KEY') || env('STRIPE_SECRET');
 const SERVICE_KEY = env('SUPABASE_SERVICE_ROLE_KEY') || env('SUPABASE_SECRET_KEY');
 
 /** Extra days a home keeps its package after a period ends, while Stripe retries a failed card. */
@@ -25,7 +27,7 @@ async function db(path: string, init: RequestInit = {}) {
 
 async function stripeGet(path: string) {
   const res = await fetch(`https://api.stripe.com/v1/${path}`, {
-    headers: { Authorization: `Bearer ${env('STRIPE_SECRET_KEY')}` },
+    headers: { Authorization: `Bearer ${STRIPE_KEY}` },
   });
   const body = await res.json();
   if (!res.ok) throw new Error(body?.error?.message ?? `Stripe said ${res.status}`);

@@ -4,6 +4,8 @@
 
 const env = (name: string) => Deno.env.get(name) ?? '';
 const SUPABASE_URL = env('SUPABASE_URL');
+// The key is accepted under either name, since it was first saved as STRIPE_SECRET.
+const STRIPE_KEY = env('STRIPE_SECRET_KEY') || env('STRIPE_SECRET');
 const SERVICE_KEY = env('SUPABASE_SERVICE_ROLE_KEY') || env('SUPABASE_SECRET_KEY');
 const SITE_URL = env('SITE_URL') || 'https://getshiftkind.com';
 const ALLOWED_ORIGINS = [SITE_URL, 'https://www.getshiftkind.com', 'https://caregiver-app.selomodjoh.workers.dev'];
@@ -40,7 +42,7 @@ async function db(path: string, init: RequestInit = {}) {
 async function stripe(path: string, params: Record<string, string>) {
   const res = await fetch(`https://api.stripe.com/v1/${path}`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${env('STRIPE_SECRET_KEY')}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: { Authorization: `Bearer ${STRIPE_KEY}`, 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams(params).toString(),
   });
   const body = await res.json();
@@ -51,7 +53,11 @@ async function stripe(path: string, params: Record<string, string>) {
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors(req) });
   if (req.method !== 'POST') return reply(req, 405, { error: 'Use POST.' });
-  if (!env('STRIPE_SECRET_KEY')) return reply(req, 503, { error: 'Card payments are not switched on yet.' });
+  if (!STRIPE_KEY) {
+    // Names only, never values: helps spot a secret saved under a slightly different name.
+    const found = Object.keys(Deno.env.toObject()).filter((k) => /stripe|whsec|sk_/i.test(k));
+    return reply(req, 503, { error: 'Card payments are not switched on yet.', secret_names_found: found });
+  }
 
   try {
     // Who is asking? Supabase checks the token for us.
