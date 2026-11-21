@@ -1700,3 +1700,7 @@ body.wide .band-lead {
   flex-direction: column;
   gap: 4px;
 }
+
+.notice-bar.inline {
+  margin: 0;
+}

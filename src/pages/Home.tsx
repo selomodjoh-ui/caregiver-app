@@ -51,7 +51,8 @@ export default function Home({ session }: Props) {
   const userId = session.user.id;
   const [profile, setProfile] = useState<Profile | null>(null);
   const [home, setHome] = useState<HomeInfo | null>(null);
-  const [tab, setTab] = useState<TabId>('shifts');
+  // Coming back from the payment page lands on My home, where the package is shown.
+  const [tab, setTab] = useState<TabId>(() => (location.search.includes('billing=') ? 'home' : 'shifts'));
   const [thread, setThread] = useState<Thread | null>(null);
   const [error, setError] = useState('');
   const [loaded, setLoaded] = useState(false);
