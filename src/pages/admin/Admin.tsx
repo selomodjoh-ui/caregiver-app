@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { messageOf, supabase } from '../../lib/supabase';
 import { CREDENTIAL_LABELS, formatDate, formatTime, payText, todayText } from '../../lib/types';
+import StateCheck from './StateCheck';
 import Band from '../../components/Band';
 
 type Section = 'overview' | 'credentials' | 'homes' | 'people' | 'shifts' | 'packages';
@@ -252,8 +253,9 @@ export default function Admin({ onClose }: Props) {
           <section className="section">
             <h2>Credentials</h2>
             <p className="hint">
-              Open the document, check the number against the state record, then mark it verified. Caregivers and
-              homes see the result straight away.
+              Open the document, check it against the state record, then mark it verified. Caregivers and homes see
+              the result straight away. "Check with the state" looks up nursing assistants (CNA) for you. Home care
+              aides (HCA) still need the Department of Health search.
             </p>
             <div className="filters" role="group" aria-label="Show">
               {(['waiting', 'verified', 'all'] as const).map((f) => (
@@ -312,6 +314,7 @@ export default function Admin({ onClose }: Props) {
                             )}
                           </div>
                         </div>
+                        {c.kind === 'hca_cna' && <StateCheck number={c.credential_number} name={c.name} expiresOn={c.expires_on} />}
                       </li>
                     );
                   })}

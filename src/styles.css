@@ -1665,3 +1665,38 @@ body.wide .band-lead {
   color: var(--ink);
   font-weight: 600;
 }
+
+/* ---------- State credential check ---------- */
+
+.state-check {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.state-result {
+  align-self: stretch;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--mint);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.state-result ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.state-result li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
