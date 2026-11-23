@@ -101,10 +101,10 @@ export default function MapView({
       if (pin.kind === 'area') {
         const c = L.circle([pin.lat, pin.lng], {
           radius: AREA_METRES,
-          color: '#0f4d3f',
+          color: '#1d3a6e',
           weight: on ? 3 : 1.5,
           dashArray: pin.quiet ? '5 5' : undefined,
-          fillColor: '#f6a48a',
+          fillColor: '#f2b25c',
           fillOpacity: on ? 0.65 : pin.quiet ? 0.2 : 0.45,
         });
         c.bindTooltip(pin.label);
@@ -160,7 +160,7 @@ export default function MapView({
           radius: 8,
           color: '#ffffff',
           weight: 3,
-          fillColor: '#1f7a5c',
+          fillColor: '#2f6fb5',
           fillOpacity: 1,
           interactive: false,
         }).addTo(g);
@@ -172,9 +172,9 @@ export default function MapView({
       if (pickedAsArea) {
         L.circle([picked.lat, picked.lng], {
           radius: AREA_METRES,
-          color: '#0f4d3f',
+          color: '#1d3a6e',
           weight: 2,
-          fillColor: '#f6a48a',
+          fillColor: '#f2b25c',
           fillOpacity: 0.45,
           interactive: false,
         }).addTo(g);

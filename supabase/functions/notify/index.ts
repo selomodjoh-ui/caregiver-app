@@ -150,7 +150,7 @@ Deno.serve(async (req: Request) => {
               to: [to],
               subject: `New message from ${senderName} on ShiftKind`,
               text: `${senderName} sent you a message on ShiftKind.\n\nRead and reply here: ${link}\n\nYou are getting this because you have a ShiftKind account. Questions? support@getshiftkind.com`,
-              html: `<div style="font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.5;color:#12302a;max-width:480px"><p style="font-size:20px;font-weight:bold;color:#0f4d3f;margin:0 0 12px">ShiftKind</p><p><strong>${name}</strong> sent you a message.</p><p style="margin:24px 0"><a href="${link}" style="background:#0f4d3f;color:#ffffff;text-decoration:none;padding:14px 22px;border-radius:12px;font-weight:bold;display:inline-block">Read and reply</a></p><p style="font-size:13px;color:#4f635c">You are getting this because you have a ShiftKind account. Questions? support@getshiftkind.com</p></div>`,
+              html: `<div style="font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.5;color:#14213d;max-width:480px"><p style="font-size:20px;font-weight:bold;color:#1d3a6e;margin:0 0 12px">ShiftKind</p><p><strong>${name}</strong> sent you a message.</p><p style="margin:24px 0"><a href="${link}" style="background:#1d3a6e;color:#ffffff;text-decoration:none;padding:14px 22px;border-radius:12px;font-weight:bold;display:inline-block">Read and reply</a></p><p style="font-size:13px;color:#4d5a73">You are getting this because you have a ShiftKind account. Questions? support@getshiftkind.com</p></div>`,
             }),
           });
           if (sent.ok) {

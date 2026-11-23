@@ -9,12 +9,12 @@ interface Person {
 
 /** Six caregivers, drawn to reflect the range of people who do this work. */
 const PEOPLE: Person[] = [
-  { skin: '#6b4226', hair: 'afro', hairColor: '#1f1410', scrubs: '#0f4d3f' },
-  { skin: '#c68a5c', hair: 'long', hairColor: '#2a1a12', scrubs: '#f6a48a' },
-  { skin: '#4f2f1c', hair: 'headwrap', hairColor: '#f6a48a', scrubs: '#1f7a5c' },
-  { skin: '#f0c9a4', hair: 'short', hairColor: '#8c8f93', scrubs: '#0f4d3f' },
+  { skin: '#6b4226', hair: 'afro', hairColor: '#1f1410', scrubs: '#1d3a6e' },
+  { skin: '#c68a5c', hair: 'long', hairColor: '#2a1a12', scrubs: '#f2b25c' },
+  { skin: '#4f2f1c', hair: 'headwrap', hairColor: '#f2b25c', scrubs: '#2f6fb5' },
+  { skin: '#f0c9a4', hair: 'short', hairColor: '#8c8f93', scrubs: '#1d3a6e' },
   { skin: '#8a5a3a', hair: 'bun', hairColor: '#1f1410', scrubs: '#e9b949' },
-  { skin: '#b97a4e', hair: 'hijab', hairColor: '#145c44', scrubs: '#f6a48a' },
+  { skin: '#b97a4e', hair: 'hijab', hairColor: '#23578f', scrubs: '#f2b25c' },
 ];
 
 function Figure({ person, x }: { person: Person; x: number }) {

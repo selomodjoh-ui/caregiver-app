@@ -1,23 +1,23 @@
 :root {
-  /* Calm and premium: deep emerald on soft sage, with a coral accent. */
-  --ground: #f2f6f3;
+  /* Steady and trustworthy: deep navy on a cool pale ground, with a gold accent. */
+  --ground: #f3f6fb;
   --surface: #ffffff;
-  --ink: #12302a;
-  --muted: #4f635c;
-  --line: #dde6e0;
-  --field-line: #b4c4bb;
-  --berry: #0f4d3f; /* main colour: buttons, headings, active states */
-  --berry-dark: #0a372d;
-  --teal: #1f7a5c; /* supporting green: free slots, own chat bubbles */
-  --teal-dark: #145c44;
-  --sun: #f6a48a; /* coral accent */
-  --peri: #e3ece6;
-  --mint: #dcefe5;
-  --rose: #e4efe8;
-  --butter: #fde6dc;
+  --ink: #14213d;
+  --muted: #4d5a73;
+  --line: #dbe3f0;
+  --field-line: #b3c0d6;
+  --berry: #1d3a6e; /* main colour: buttons, headings, active states */
+  --berry-dark: #142a52;
+  --teal: #2f6fb5; /* supporting blue: free slots, own chat bubbles */
+  --teal-dark: #23578f;
+  --sun: #f2b25c; /* gold accent */
+  --peri: #e2e9f5;
+  --mint: #dbe8f7;
+  --rose: #e4ebf6;
+  --butter: #fdeed6;
   --error-bg: #fde8e4;
   --error-ink: #8a1c12;
-  --shadow: 0 2px 12px rgba(18, 48, 42, 0.07);
+  --shadow: 0 2px 12px rgba(20, 33, 61, 0.07);
   --display: 'Plus Jakarta Sans', 'Figtree', system-ui, sans-serif;
   --body: 'Figtree', system-ui, sans-serif;
 }
@@ -47,7 +47,7 @@ body {
 .band {
   position: relative;
   overflow: hidden;
-  background: #e3ece6;
+  background: #e2e9f5;
   color: var(--ink);
   border-radius: 0 0 28px 28px;
 }
@@ -291,17 +291,17 @@ h2 {
   color: #ffffff;
   font: 700 17px var(--body);
   cursor: pointer;
-  box-shadow: 0 6px 16px rgba(15, 77, 63, 0.24);
+  box-shadow: 0 6px 16px rgba(29, 58, 110, 0.24);
   transition: transform 0.08s, box-shadow 0.08s, background-color 0.15s;
 }
 
 .btn:hover {
-  background: #14604f;
+  background: #1f4a85;
 }
 
 .btn:active {
   transform: translateY(1px);
-  box-shadow: 0 2px 6px rgba(15, 77, 63, 0.2);
+  box-shadow: 0 2px 6px rgba(29, 58, 110, 0.2);
 }
 
 .btn:disabled {
@@ -423,7 +423,7 @@ a:focus-visible {
 
 .progress span {
   font-size: 15px;
-  color: #dcefe5;
+  color: #dbe8f7;
 }
 
 .pips {
@@ -522,7 +522,7 @@ a:focus-visible {
   font-size: 13px;
   font-weight: 600;
   background: var(--peri);
-  color: #2f463d;
+  color: #2c3a56;
 }
 
 .chip.ok {
@@ -1578,7 +1578,7 @@ body.wide .band-lead {
   transform: rotate(-45deg);
   background: var(--berry);
   border: 3px solid #ffffff;
-  box-shadow: 0 4px 10px rgba(15, 77, 63, 0.35);
+  box-shadow: 0 4px 10px rgba(29, 58, 110, 0.35);
   color: #ffffff;
   font: 700 15px var(--body);
 }
@@ -1637,7 +1637,7 @@ body.wide .band-lead {
   border-radius: 50%;
   background: var(--sun);
   border: 3px solid #ffffff;
-  box-shadow: 0 3px 8px rgba(15, 77, 63, 0.3);
+  box-shadow: 0 3px 8px rgba(29, 58, 110, 0.3);
   color: var(--berry);
   font: 700 15px var(--body);
 }
@@ -1707,7 +1707,7 @@ body.wide .band-lead {
 
 .help {
   margin-top: 20px;
-  color: var(--muted, #5b6f69);
+  color: var(--muted, #586884);
   font-size: 15px;
   text-align: center;
 }
@@ -1786,7 +1786,7 @@ body.wide .band-lead {
   padding: 8px;
   border: none;
   border-radius: 36px;
-  box-shadow: 0 10px 28px rgba(8, 38, 31, 0.16), 0 0 0 1px rgba(8, 38, 31, 0.05);
+  box-shadow: 0 10px 28px rgba(12, 24, 48, 0.16), 0 0 0 1px rgba(12, 24, 48, 0.05);
 }
 
 .tabs button {
@@ -1849,11 +1849,11 @@ body.wide .band-lead {
 }
 
 .day-strip button.on small {
-  color: #cfe3da;
+  color: #cfdcf0;
 }
 
 .day-strip button.on.has .dot {
-  background: #f6a48a;
+  background: #f2b25c;
 }
 
 /* ---------- Shift cards: when on the left, pay on the right ---------- */
@@ -1924,7 +1924,7 @@ body.wide .band-lead {
 .list li.best {
   border: 2px solid var(--berry);
   border-radius: 26px;
-  box-shadow: 0 8px 22px rgba(8, 38, 31, 0.08);
+  box-shadow: 0 8px 22px rgba(12, 24, 48, 0.08);
 }
 
 .best .card-button {

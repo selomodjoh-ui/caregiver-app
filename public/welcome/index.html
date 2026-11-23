@@ -5,23 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ShiftKind: care work, on your schedule</title>
 <meta name="description" content="ShiftKind connects licensed caregivers with adult family homes in Washington State. Find shifts that fit your free time, or fill a shift with someone whose credentials have been checked.">
-<meta name="theme-color" content="#0f4d3f">
+<meta name="theme-color" content="#1d3a6e">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
 <style>
 :root {
-  --emerald: #0f4d3f;
-  --emerald-deep: #0a372d;
-  --green: #1f7a5c;
-  --sage: #e3ece6;
-  --ground: #f2f6f3;
+  --emerald: #1d3a6e;
+  --emerald-deep: #142a52;
+  --green: #2f6fb5;
+  --sage: #e2e9f5;
+  --ground: #f3f6fb;
   --surface: #ffffff;
-  --ink: #12302a;
-  --muted: #4f635c;
-  --line: #d5e0d9;
-  --coral: #f6a48a;
-  --coral-tint: #fde6dc;
+  --ink: #14213d;
+  --muted: #4d5a73;
+  --line: #d3dcec;
+  --coral: #f2b25c;
+  --coral-tint: #fdeed6;
   --coral-ink: #8a3a1c;
   --display: 'Plus Jakarta Sans', 'Figtree', system-ui, sans-serif;
   --body: 'Figtree', system-ui, sans-serif;
@@ -40,13 +40,13 @@ p { margin: 0; }
 .lead { font-size: clamp(18px, 2vw, 21px); color: var(--muted); max-width: 34em; }
 
 /* Buttons */
-.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 26px; border-radius: 16px; font: 700 17px var(--body); text-decoration: none; background: var(--emerald); color: #fff; box-shadow: 0 8px 20px rgba(15, 77, 63, 0.24); transition: transform 0.12s, background-color 0.15s; }
-.btn:hover { background: #14604f; }
+.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 26px; border-radius: 16px; font: 700 17px var(--body); text-decoration: none; background: var(--emerald); color: #fff; box-shadow: 0 8px 20px rgba(29, 58, 110, 0.24); transition: transform 0.12s, background-color 0.15s; }
+.btn:hover { background: #1f4a85; }
 .btn:active { transform: translateY(1px); }
 .btn.ghost { background: var(--surface); color: var(--emerald); box-shadow: inset 0 0 0 1.5px var(--emerald); }
 .btn.ghost:hover { background: var(--sage); }
 .btn.on-dark { background: var(--coral); color: var(--ink); box-shadow: none; }
-.btn.on-dark:hover { background: #f9b7a1; }
+.btn.on-dark:hover { background: #f6c683; }
 a:focus-visible { outline: 3px solid var(--coral); outline-offset: 3px; border-radius: 6px; }
 
 /* Header */
@@ -81,7 +81,7 @@ section { padding: 88px 0; }
 .duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
 .panel { border-radius: 32px; padding: 40px; display: flex; flex-direction: column; gap: 20px; scroll-margin-top: 90px; }
 .panel.light { background: var(--surface); border: 1.5px solid var(--line); }
-.panel.dark { background: var(--emerald); color: #e6f1ec; }
+.panel.dark { background: var(--emerald); color: #e6edf8; }
 .panel.dark h2, .panel.dark h3 { color: #fff; }
 .panel h2 { font-size: clamp(26px, 3.2vw, 36px); }
 .ticks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
@@ -92,7 +92,7 @@ section { padding: 88px 0; }
 .panel .btn { align-self: flex-start; margin-top: auto; }
 
 /* Training */
-.training { background: var(--emerald-deep); color: #dcebe4; border-radius: 44px; padding: 72px 0; scroll-margin-top: 80px; }
+.training { background: var(--emerald-deep); color: #dbe5f3; border-radius: 44px; padding: 72px 0; scroll-margin-top: 80px; }
 .training h2, .training h3 { color: #fff; }
 .training .wrap { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 56px; align-items: center; }
 .big { font: 800 clamp(120px, 20vw, 240px)/0.85 var(--display); color: var(--coral); letter-spacing: -0.06em; }
@@ -101,15 +101,15 @@ section { padding: 88px 0; }
 .soon { align-self: flex-start; padding: 6px 14px; border-radius: 999px; background: var(--coral); color: var(--ink); font-weight: 700; font-size: 15px; }
 .hours { margin: 0; display: flex; gap: 6px; height: 22px; }
 .hours span { border-radius: 8px; }
-.h-a { flex: 5; background: #f6a48a; }
-.h-b { flex: 38; background: #8fd0b4; }
+.h-a { flex: 5; background: #f2b25c; }
+.h-b { flex: 38; background: #8fb4e0; }
 .h-c { flex: 16; background: #f3d27a; }
 .h-d { flex: 16; background: #b9c8f2; }
 .legend { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; }
 .legend li { display: flex; gap: 10px; align-items: baseline; font-size: 17px; }
 .legend i { width: 14px; height: 14px; border-radius: 5px; flex-shrink: 0; transform: translateY(1px); }
 .legend b { color: #fff; }
-.fine { font-size: 15px; color: #a9c4b8; }
+.fine { font-size: 15px; color: #a8bbd8; }
 
 /* App */
 .shots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
@@ -162,7 +162,7 @@ footer p { max-width: 46em; }
 <header class="top">
   <div class="wrap">
     <a class="brand" href="#top">
-      <svg aria-hidden="true" width="30" height="30" viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" fill="#0f4d3f"/><path d="M12 18s-3.6-2.2-3.6-5a2 2 0 0 1 3.6-1.3A2 2 0 0 1 15.6 13c0 2.8-3.6 5-3.6 5z" fill="#f6a48a"/></svg>
+      <svg aria-hidden="true" width="30" height="30" viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" fill="#1d3a6e"/><path d="M12 18s-3.6-2.2-3.6-5a2 2 0 0 1 3.6-1.3A2 2 0 0 1 15.6 13c0 2.8-3.6 5-3.6 5z" fill="#f2b25c"/></svg>
       ShiftKind
     </a>
     <nav aria-label="Sections">
@@ -187,12 +187,12 @@ footer p { max-width: 46em; }
         </div>
         <p class="hero-note">Free for caregivers. Homes start with 14 days free.</p>
         <svg class="people" role="img" aria-label="Six caregivers of different backgrounds" viewBox="0 0 330 88">
-          <g><circle cx="30" cy="27" r="21" fill="#1f1410"/><path d="M4 88C4 64 17 56 30 56s26 8 26 32z" fill="#0f4d3f"/><rect x="25" y="42" width="10" height="17" rx="4" fill="#6b4226"/><path d="M24 57l6 8 6-8z" fill="#6b4226"/><circle cx="30" cy="32" r="14" fill="#6b4226"/><circle cx="25.5" cy="31" r="1.4" fill="#1a0f0a"/><circle cx="34.5" cy="31" r="1.4" fill="#1a0f0a"/><path d="M25 36.500q5 4.5 10 0" stroke="#1a0f0a" stroke-width="1.5" stroke-linecap="round" fill="none"/></g>
-          <g transform="translate(54)"><rect x="13" y="15" width="34" height="44" rx="16" fill="#2a1a12"/><path d="M4 88C4 64 17 56 30 56s26 8 26 32z" fill="#f6a48a"/><rect x="25" y="42" width="10" height="17" rx="4" fill="#c68a5c"/><path d="M24 57l6 8 6-8z" fill="#c68a5c"/><circle cx="30" cy="32" r="14" fill="#c68a5c"/><circle cx="25.5" cy="31" r="1.4" fill="#1a0f0a"/><circle cx="34.5" cy="31" r="1.4" fill="#1a0f0a"/><path d="M25 36.500q5 4.5 10 0" stroke="#1a0f0a" stroke-width="1.5" stroke-linecap="round" fill="none"/></g>
-          <g transform="translate(108)"><circle cx="30" cy="26" r="17.5" fill="#f6a48a"/><path d="M4 88C4 64 17 56 30 56s26 8 26 32z" fill="#1f7a5c"/><rect x="25" y="42" width="10" height="17" rx="4" fill="#4f2f1c"/><path d="M24 57l6 8 6-8z" fill="#4f2f1c"/><circle cx="30" cy="32" r="14" fill="#4f2f1c"/><path d="M15 28c2-14 28-14 30 0-7-7-23-7-30 0z" fill="#f6a48a"/><circle cx="43" cy="13" r="5.5" fill="#f6a48a"/><circle cx="25.5" cy="31" r="1.4" fill="#1a0f0a"/><circle cx="34.5" cy="31" r="1.4" fill="#1a0f0a"/><path d="M25 36.500q5 4.5 10 0" stroke="#1a0f0a" stroke-width="1.5" stroke-linecap="round" fill="none"/></g>
-          <g transform="translate(162)"><circle cx="30" cy="28.5" r="15.5" fill="#8c8f93"/><path d="M4 88C4 64 17 56 30 56s26 8 26 32z" fill="#0f4d3f"/><rect x="25" y="42" width="10" height="17" rx="4" fill="#f0c9a4"/><path d="M24 57l6 8 6-8z" fill="#f0c9a4"/><circle cx="30" cy="32" r="14" fill="#f0c9a4"/><circle cx="25.5" cy="31" r="1.4" fill="#1a0f0a"/><circle cx="34.5" cy="31" r="1.4" fill="#1a0f0a"/><path d="M25 36.500q5 4.5 10 0" stroke="#1a0f0a" stroke-width="1.5" stroke-linecap="round" fill="none"/></g>
+          <g><circle cx="30" cy="27" r="21" fill="#1f1410"/><path d="M4 88C4 64 17 56 30 56s26 8 26 32z" fill="#1d3a6e"/><rect x="25" y="42" width="10" height="17" rx="4" fill="#6b4226"/><path d="M24 57l6 8 6-8z" fill="#6b4226"/><circle cx="30" cy="32" r="14" fill="#6b4226"/><circle cx="25.5" cy="31" r="1.4" fill="#1a0f0a"/><circle cx="34.5" cy="31" r="1.4" fill="#1a0f0a"/><path d="M25 36.500q5 4.5 10 0" stroke="#1a0f0a" stroke-width="1.5" stroke-linecap="round" fill="none"/></g>
+          <g transform="translate(54)"><rect x="13" y="15" width="34" height="44" rx="16" fill="#2a1a12"/><path d="M4 88C4 64 17 56 30 56s26 8 26 32z" fill="#f2b25c"/><rect x="25" y="42" width="10" height="17" rx="4" fill="#c68a5c"/><path d="M24 57l6 8 6-8z" fill="#c68a5c"/><circle cx="30" cy="32" r="14" fill="#c68a5c"/><circle cx="25.5" cy="31" r="1.4" fill="#1a0f0a"/><circle cx="34.5" cy="31" r="1.4" fill="#1a0f0a"/><path d="M25 36.500q5 4.5 10 0" stroke="#1a0f0a" stroke-width="1.5" stroke-linecap="round" fill="none"/></g>
+          <g transform="translate(108)"><circle cx="30" cy="26" r="17.5" fill="#f2b25c"/><path d="M4 88C4 64 17 56 30 56s26 8 26 32z" fill="#2f6fb5"/><rect x="25" y="42" width="10" height="17" rx="4" fill="#4f2f1c"/><path d="M24 57l6 8 6-8z" fill="#4f2f1c"/><circle cx="30" cy="32" r="14" fill="#4f2f1c"/><path d="M15 28c2-14 28-14 30 0-7-7-23-7-30 0z" fill="#f2b25c"/><circle cx="43" cy="13" r="5.5" fill="#f2b25c"/><circle cx="25.5" cy="31" r="1.4" fill="#1a0f0a"/><circle cx="34.5" cy="31" r="1.4" fill="#1a0f0a"/><path d="M25 36.500q5 4.5 10 0" stroke="#1a0f0a" stroke-width="1.5" stroke-linecap="round" fill="none"/></g>
+          <g transform="translate(162)"><circle cx="30" cy="28.5" r="15.5" fill="#8c8f93"/><path d="M4 88C4 64 17 56 30 56s26 8 26 32z" fill="#1d3a6e"/><rect x="25" y="42" width="10" height="17" rx="4" fill="#f0c9a4"/><path d="M24 57l6 8 6-8z" fill="#f0c9a4"/><circle cx="30" cy="32" r="14" fill="#f0c9a4"/><circle cx="25.5" cy="31" r="1.4" fill="#1a0f0a"/><circle cx="34.5" cy="31" r="1.4" fill="#1a0f0a"/><path d="M25 36.500q5 4.5 10 0" stroke="#1a0f0a" stroke-width="1.5" stroke-linecap="round" fill="none"/></g>
           <g transform="translate(216)"><circle cx="30" cy="9" r="7" fill="#1f1410"/><circle cx="30" cy="28" r="16" fill="#1f1410"/><path d="M4 88C4 64 17 56 30 56s26 8 26 32z" fill="#e9b949"/><rect x="25" y="42" width="10" height="17" rx="4" fill="#8a5a3a"/><path d="M24 57l6 8 6-8z" fill="#8a5a3a"/><circle cx="30" cy="32" r="14" fill="#8a5a3a"/><circle cx="25.5" cy="31" r="1.4" fill="#1a0f0a"/><circle cx="34.5" cy="31" r="1.4" fill="#1a0f0a"/><path d="M25 36.500q5 4.5 10 0" stroke="#1a0f0a" stroke-width="1.5" stroke-linecap="round" fill="none"/></g>
-          <g transform="translate(270)"><path d="M4 88C4 64 17 56 30 56s26 8 26 32z" fill="#f6a48a"/><rect x="25" y="42" width="10" height="17" rx="4" fill="#b97a4e"/><path d="M30 8C16 8 10 20 10 34c0 16 4 28 20 32 16-4 20-16 20-32C50 20 44 8 30 8z" fill="#145c44"/><circle cx="30" cy="32" r="12.5" fill="#b97a4e"/><circle cx="25.5" cy="31" r="1.4" fill="#1a0f0a"/><circle cx="34.5" cy="31" r="1.4" fill="#1a0f0a"/><path d="M25 36.500q5 4.5 10 0" stroke="#1a0f0a" stroke-width="1.5" stroke-linecap="round" fill="none"/></g>
+          <g transform="translate(270)"><path d="M4 88C4 64 17 56 30 56s26 8 26 32z" fill="#f2b25c"/><rect x="25" y="42" width="10" height="17" rx="4" fill="#b97a4e"/><path d="M30 8C16 8 10 20 10 34c0 16 4 28 20 32 16-4 20-16 20-32C50 20 44 8 30 8z" fill="#23578f"/><circle cx="30" cy="32" r="12.5" fill="#b97a4e"/><circle cx="25.5" cy="31" r="1.4" fill="#1a0f0a"/><circle cx="34.5" cy="31" r="1.4" fill="#1a0f0a"/><path d="M25 36.500q5 4.5 10 0" stroke="#1a0f0a" stroke-width="1.5" stroke-linecap="round" fill="none"/></g>
         </svg>
       </div>
       <div class="phone">
@@ -258,8 +258,8 @@ footer p { max-width: 46em; }
             <span class="h-a"></span><span class="h-b"></span><span class="h-c"></span><span class="h-d"></span>
           </div>
           <ul class="legend">
-            <li><i style="background:#f6a48a"></i><span><b>5 hours</b> orientation and safety</span></li>
-            <li><i style="background:#8fd0b4"></i><span><b>38 hours</b> fundamentals of caregiving</span></li>
+            <li><i style="background:#f2b25c"></i><span><b>5 hours</b> orientation and safety</span></li>
+            <li><i style="background:#8fb4e0"></i><span><b>38 hours</b> fundamentals of caregiving</span></li>
             <li><i style="background:#f3d27a"></i><span><b>16 hours</b> hands-on skills practice</span></li>
             <li><i style="background:#b9c8f2"></i><span><b>16 hours</b> population-specific training</span></li>
           </ul>
