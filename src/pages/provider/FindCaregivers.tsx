@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import {
   DAYS,
+  dateKey,
   dayOf,
+  isFreeOn,
+  type DateChange,
   formatDate,
   isHomeActive,
   partOf,
@@ -120,10 +123,20 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
     for (const row of (a.data ?? []) as { user_id: string; day: number; part: Part }[]) {
       free.set(row.user_id, (free.get(row.user_id) ?? new Set()).add(slotKey(row)));
     }
+    // One-off changes caregivers made for these exact dates: away, or free for an extra shift.
+    const dates = [...new Set(slots.map((x) => x.date))];
+    const d = await supabase.from('availability_dates').select('user_id, on_date, part, free').in('on_date', dates);
+    const changed = new Map<string, Map<string, boolean>>();
+    for (const row of (d.data ?? []) as ({ user_id: string } & DateChange)[]) {
+      const mine = changed.get(row.user_id) ?? new Map<string, boolean>();
+      mine.set(dateKey(row.on_date, row.part), row.free);
+      changed.set(row.user_id, mine);
+    }
     // For each caregiver, which of the requested shifts they are free for.
+    const none = new Map<string, boolean>();
     const cover: Record<string, string[]> = {};
-    for (const [id, keys] of free) {
-      const hits = slots.filter((x) => keys.has(slotKey(x)));
+    for (const id of new Set([...free.keys(), ...changed.keys()])) {
+      const hits = slots.filter((x) => isFreeOn(free.get(id) ?? new Set(), changed.get(id) ?? none, x.date, x.part));
       if (hits.length > 0) cover[id] = hits.map((x) => `${formatDate(x.date)} ${x.part}`);
     }
     const ids = Object.keys(cover).sort((x, y) => cover[y].length - cover[x].length);

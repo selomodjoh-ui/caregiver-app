@@ -2011,3 +2011,50 @@ body.wide .band-lead {
 .push-toggle .hint {
   margin: 0;
 }
+
+/* ---------- Free time: the next two weeks ---------- */
+
+.week-title {
+  margin: 22px 0 8px;
+  font: 700 17px var(--display);
+}
+
+.week-title:first-of-type {
+  margin-top: 6px;
+}
+
+.week.dates .week-row {
+  grid-template-columns: 62px repeat(2, minmax(0, 1fr));
+}
+
+.date-day {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.date-day small {
+  font: 600 12px var(--body);
+  color: var(--muted);
+}
+
+.week.dates .slot {
+  height: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.15;
+}
+
+/* A date that differs from the usual week. */
+.slot.changed {
+  border-color: var(--sun);
+  box-shadow: inset 0 0 0 1.5px var(--sun);
+}
+
+.slot-note {
+  font: 500 10.5px var(--body);
+  opacity: 0.85;
+}

@@ -4,7 +4,6 @@ import { RatingForm, RatingLine, type RatingSummary } from '../../components/Rat
 import {
   CREDENTIAL_LABELS,
   careMix,
-  dayOf,
   daysAgoText,
   isFeatured,
   isCurrent,
@@ -16,6 +15,9 @@ import {
   hoursBetween,
   shiftTitle,
   todayText,
+  dateKey,
+  isFreeOn,
+  type DateChange,
   type Application,
   type ApplicationStatus,
   type Shift,
@@ -42,6 +44,7 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
   const [free, setFree] = useState<Set<string>>(new Set());
+  const [changes, setChanges] = useState<Map<string, boolean>>(new Map());
   const [credentials, setCredentials] = useState<MyCredential[]>([]);
   const [summaries, setSummaries] = useState<RatingSummary[]>([]);
   const [rated, setRated] = useState<Set<string>>(new Set());
@@ -71,7 +74,7 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
         const p = pointOf(data);
         if (p) setMe((now) => now ?? p);
       });
-    const [s, a, f, c, r, g] = await Promise.all([
+    const [s, a, f, fd, c, r, g] = await Promise.all([
       supabase
         .from('shifts')
         .select('*, homes(*)')
@@ -81,6 +84,7 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
         .order('start_time'),
       supabase.from('applications').select('id, shift_id, caregiver_id, status').eq('caregiver_id', userId),
       supabase.from('availability').select('day, part').eq('user_id', userId),
+      supabase.from('availability_dates').select('on_date, part, free').eq('user_id', userId).gte('on_date', todayText()),
       supabase.from('credentials').select('kind, expires_on').eq('user_id', userId),
       supabase.from('rating_summary').select('ratee_id, average, total'),
       supabase.from('ratings').select('shift_id').eq('rater_id', userId),
@@ -90,6 +94,8 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
     setShifts((s.data ?? []) as Shift[]);
     setApplications((a.data ?? []) as Application[]);
     setFree(new Set((f.data ?? []).map((r) => `${r.day}-${r.part}`)));
+    // One-off date changes. Missing until the database step is run; the usual week still works.
+    setChanges(new Map(((fd.data ?? []) as DateChange[]).map((x) => [dateKey(x.on_date, x.part), x.free])));
     setCredentials((c.data ?? []) as MyCredential[]);
     setSummaries((r.data ?? []) as RatingSummary[]);
     setRated(new Set((g.data ?? []).map((x) => x.shift_id as string)));
@@ -101,7 +107,7 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
   }, []);
 
   const appFor = (shiftId: string) => applications.find((a) => a.shift_id === shiftId);
-  const fits = (shift: Shift) => free.has(`${dayOf(shift.shift_date)}-${partOf(shift.start_time)}`);
+  const fits = (shift: Shift) => isFreeOn(free, changes, shift.shift_date, partOf(shift.start_time));
   const has = (kind: string) => isCurrent(credentials.find((c) => c.kind === kind));
 
   async function apply(shift: Shift) {

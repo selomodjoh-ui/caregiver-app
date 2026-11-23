@@ -105,7 +105,7 @@ export interface Thread {
   subtitle: string;
 }
 
-function parseDate(dateText: string): Date {
+export function parseDate(dateText: string): Date {
   const [y, m, d] = dateText.split('-').map(Number);
   return new Date(y, m - 1, d);
 }
@@ -123,6 +123,29 @@ export function daysAgoText(days: number): string {
   const m = String(then.getMonth() + 1).padStart(2, '0');
   const d = String(then.getDate()).padStart(2, '0');
   return `${then.getFullYear()}-${m}-${d}`;
+}
+
+/** The date n days from today, as text like "2026-11-23". */
+export function daysAheadText(days: number): string {
+  return daysAgoText(-days);
+}
+
+/** A one-off change to the usual week: free, or not free, on one date. */
+export interface DateChange {
+  on_date: string;
+  part: Part;
+  free: boolean;
+}
+
+export const dateKey = (date: string, part: Part) => `${date}|${part}`;
+
+/**
+ * Whether someone is free for a date and part of day.
+ * A change made for that date wins; otherwise their usual week decides.
+ */
+export function isFreeOn(weekly: Set<string>, changes: Map<string, boolean>, date: string, part: Part): boolean {
+  const changed = changes.get(dateKey(date, part));
+  return changed ?? weekly.has(`${dayOf(date)}-${part}`);
 }
 
 export function formatDate(dateText: string): string {
