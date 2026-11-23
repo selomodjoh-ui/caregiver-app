@@ -1,3 +1,4 @@
+import Avatar from '../../components/Avatar';
 import { RatingLine, type RatingSummary } from '../../components/Rating';
 import { CREDENTIAL_LABELS, isCurrent, type CaregiverCard, type CredentialSummary } from '../../lib/types';
 
@@ -16,9 +17,7 @@ export default function CaregiverSummary({ card, credentials, required, rating }
 
   return (
     <div className="person">
-      <span className="avatar" aria-hidden="true">
-        {card ? card.first_name.charAt(0).toUpperCase() : '?'}
-      </span>
+      <Avatar userId={card?.id} name={card?.first_name} />
       <div className="list-main">
         <span className="list-title">{card ? `${card.first_name} ${card.surname_initial}.` : 'Caregiver'}</span>
         <RatingLine summary={rating} />

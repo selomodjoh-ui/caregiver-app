@@ -24,6 +24,7 @@ import {
   type Thread,
 } from '../../lib/types';
 
+import Avatar from '../../components/Avatar';
 import MapView, { type Pin } from '../../components/MapView';
 import { milesBetween, milesText, pointOf, whereAmI, type Point } from '../../lib/geo';
 
@@ -137,6 +138,7 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
     onOpenThread({
       shiftId: shift.id,
       caregiverId: userId,
+      photoId: shift.home_id,
       title: shift.homes?.name ?? 'The home',
       subtitle: shiftTitle(shift),
     });
@@ -264,7 +266,10 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
               </span>
             )}
           </span>
-          <span className={isBest ? 'list-title' : 'hint'}>{home?.name ?? 'Adult family home'}</span>
+          <span className="home-line">
+            <Avatar userId={shift.home_id} name={home?.name} size="small" />
+            <span className={isBest ? 'list-title' : 'hint'}>{home?.name ?? 'Adult family home'}</span>
+          </span>
           {isMine && total != null && <span className="earn">You earn {money(total)}</span>}
           <RatingLine summary={summaries.find((x) => x.ratee_id === shift.home_id)} />
           <span className="chips">

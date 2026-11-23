@@ -103,6 +103,8 @@ export interface Thread {
   caregiverId: string;
   title: string;
   subtitle: string;
+  /** Whose picture to show: the other person in the conversation. */
+  photoId?: string;
 }
 
 export function parseDate(dateText: string): Date {

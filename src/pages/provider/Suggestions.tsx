@@ -1,3 +1,4 @@
+import Avatar from '../../components/Avatar';
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { RatingLine } from '../../components/Rating';
@@ -96,9 +97,7 @@ export default function Suggestions({ shift, homeId, stillNeeded, onOffered, onO
           {list.map((s, i) => (
             <div key={s.id} className="applicant">
               <div className="person">
-                <span className="avatar" aria-hidden="true">
-                  {s.first_name.charAt(0).toUpperCase()}
-                </span>
+                <Avatar userId={s.id} name={s.first_name} />
                 <div className="list-main">
                   <span className="list-title">
                     {s.first_name} {s.surname_initial}.

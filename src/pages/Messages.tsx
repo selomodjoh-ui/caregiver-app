@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'rea
 import { supabase, type Role } from '../lib/supabase';
 import { announce } from '../lib/push';
 import PushToggle from '../components/PushToggle';
+import Avatar from '../components/Avatar';
 import { shiftTitle, type Application, type CaregiverCard, type Shift, type Thread } from '../lib/types';
 
 interface Props {
@@ -107,6 +108,7 @@ function ThreadList({ userId, role, onOpenThread, unread }: Pick<Props, 'userId'
           ((s.data ?? []) as Shift[]).map((shift) => ({
             shiftId: shift.id,
             caregiverId: userId,
+            photoId: shift.home_id,
             title: shift.homes?.name ?? 'The home',
             subtitle: shiftTitle(shift),
           })),
@@ -119,6 +121,7 @@ function ThreadList({ userId, role, onOpenThread, unread }: Pick<Props, 'userId'
             shiftId: null,
             homeId: id,
             caregiverId: userId,
+            photoId: id,
             title: (h.data ?? []).find((x) => x.owner_id === id)?.name ?? 'A care home',
             subtitle: 'Direct conversation',
           }));
@@ -153,6 +156,7 @@ function ThreadList({ userId, role, onOpenThread, unread }: Pick<Props, 'userId'
             shiftId: null,
             homeId: userId,
             caregiverId: id,
+            photoId: id,
             title: nameOf(id),
             subtitle: 'Direct conversation',
           })),
@@ -162,6 +166,7 @@ function ThreadList({ userId, role, onOpenThread, unread }: Pick<Props, 'userId'
             return {
               shiftId: app.shift_id,
               caregiverId: app.caregiver_id,
+              photoId: app.caregiver_id,
               title: card ? `${card.first_name} ${card.surname_initial}.` : 'Caregiver',
               subtitle: shiftTitle(shift),
             };
@@ -198,16 +203,19 @@ function ThreadList({ userId, role, onOpenThread, unread }: Pick<Props, 'userId'
               const count = unreadIn(t, unread);
               return (
                 <li key={`${t.shiftId}-${t.homeId}-${t.caregiverId}`} className={count > 0 ? 'unread' : ''}>
-                  <button type="button" className="card-button" onClick={() => onOpenThread(t)}>
-                    <span className="card-top">
-                      <span className="list-title">{t.title}</span>
-                      {count > 0 && (
-                        <span className="unread-count">
-                          {count} new<span className="visually-hidden"> {count === 1 ? 'message' : 'messages'}</span>
-                        </span>
-                      )}
+                  <button type="button" className="card-button with-avatar" onClick={() => onOpenThread(t)}>
+                    <Avatar userId={t.photoId} name={t.title} />
+                    <span className="list-main">
+                      <span className="card-top">
+                        <span className="list-title">{t.title}</span>
+                        {count > 0 && (
+                          <span className="unread-count">
+                            {count} new<span className="visually-hidden"> {count === 1 ? 'message' : 'messages'}</span>
+                          </span>
+                        )}
+                      </span>
+                      <span className="hint">{t.shiftId ? `About: ${t.subtitle}` : t.subtitle}</span>
                     </span>
-                    <span className="hint">{t.shiftId ? `About: ${t.subtitle}` : t.subtitle}</span>
                   </button>
                 </li>
               );
@@ -324,9 +332,15 @@ function Conversation({
       <button type="button" className="link" onClick={onBack}>
         Back to messages
       </button>
-      <div>
-        <h2>{thread.title}</h2>
-        <p className="hint">{thread.shiftId ? `About: ${thread.subtitle}` : thread.subtitle}</p>
+      <div className="person">
+        <Avatar
+          userId={thread.photoId ?? (userId === thread.caregiverId ? thread.homeId : thread.caregiverId)}
+          name={thread.title}
+        />
+        <div>
+          <h2>{thread.title}</h2>
+          <p className="hint">{thread.shiftId ? `About: ${thread.subtitle}` : thread.subtitle}</p>
+        </div>
       </div>
 
       <div className="bubbles" aria-live="polite">

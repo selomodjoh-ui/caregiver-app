@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js';
 import { messageOf, supabase, withTimeout, type Profile } from '../lib/supabase';
 import type { HomeInfo, Thread } from '../lib/types';
 import Band from '../components/Band';
+import PhotoPicker from '../components/PhotoPicker';
 import MyRatings from '../components/MyRatings';
 import MyArea from '../components/MyArea';
 import LookingFor from '../components/LookingFor';
@@ -210,6 +211,9 @@ export default function Home({ session }: Props) {
               email: session.user.email ?? null,
             }}
           />
+        )}
+        {tab === 'account' && (
+          <PhotoPicker userId={userId} name={profile.first_name} isProvider={isProvider} />
         )}
         {tab === 'account' && <MyRatings userId={userId} />}
         {tab === 'account' && !isProvider && <LookingFor userId={userId} />}

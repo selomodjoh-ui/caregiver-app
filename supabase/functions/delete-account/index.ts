@@ -81,6 +81,14 @@ Deno.serve(async (req: Request) => {
       if (!res.ok) throw new Error(`Storage said ${res.status}: ${await res.text()}`);
     }
 
+    // Remove the profile picture, if there is one.
+    const pic = await fetch(`${SUPABASE_URL}/storage/v1/object/avatars`, {
+      method: 'DELETE',
+      headers: asServer,
+      body: JSON.stringify({ prefixes: [`${user.id}/photo.jpg`] }),
+    });
+    if (!pic.ok) throw new Error(`Storage said ${pic.status}: ${await pic.text()}`);
+
     // 3. Delete the login. Everything else that belongs to this person goes with it.
     const gone = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${user.id}`, { method: 'DELETE', headers: asServer });
     if (!gone.ok) throw new Error(`Auth said ${gone.status}: ${await gone.text()}`);
