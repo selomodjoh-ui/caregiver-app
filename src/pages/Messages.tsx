@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { supabase, type Role } from '../lib/supabase';
+import { announce } from '../lib/push';
+import PushToggle from '../components/PushToggle';
 import { shiftTitle, type Application, type CaregiverCard, type Shift, type Thread } from '../lib/types';
 
 interface Props {
@@ -10,6 +12,25 @@ interface Props {
   onBack: () => void;
   /** The signed-in person's own contact details, which they may choose to share. */
   contact: Contact;
+  /** Unopened messages from other people, one entry per message. */
+  unread: Unread[];
+  /** Called after a conversation has been marked read. */
+  onRead: () => void;
+}
+
+export interface Unread {
+  shift_id: string | null;
+  home_id: string | null;
+  caregiver_id: string;
+}
+
+/** How many unopened messages belong to one conversation. */
+function unreadIn(thread: Thread, unread: Unread[]): number {
+  return unread.filter(
+    (m) =>
+      m.caregiver_id === thread.caregiverId &&
+      (thread.shiftId ? m.shift_id === thread.shiftId : m.shift_id === null && m.home_id === (thread.homeId ?? null)),
+  ).length;
 }
 
 export interface Contact {
@@ -54,15 +75,15 @@ interface Message {
 
 const POLL_MS = 5000;
 
-export default function Messages({ userId, role, thread, onOpenThread, onBack, contact }: Props) {
+export default function Messages({ userId, role, thread, onOpenThread, onBack, contact, unread, onRead }: Props) {
   return thread ? (
-    <Conversation userId={userId} thread={thread} onBack={onBack} contact={contact} />
+    <Conversation userId={userId} thread={thread} onBack={onBack} contact={contact} onRead={onRead} />
   ) : (
-    <ThreadList userId={userId} role={role} onOpenThread={onOpenThread} />
+    <ThreadList userId={userId} role={role} onOpenThread={onOpenThread} unread={unread} />
   );
 }
 
-function ThreadList({ userId, role, onOpenThread }: Pick<Props, 'userId' | 'role' | 'onOpenThread'>) {
+function ThreadList({ userId, role, onOpenThread, unread }: Pick<Props, 'userId' | 'role' | 'onOpenThread' | 'unread'>) {
   const [threads, setThreads] = useState<Thread[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState('');
@@ -155,6 +176,7 @@ function ThreadList({ userId, role, onOpenThread }: Pick<Props, 'userId' | 'role
   return (
     <section className="section">
       <h2>Messages</h2>
+      <PushToggle />
       {error && (
         <p className="error" role="alert">
           {error}
@@ -170,21 +192,39 @@ function ThreadList({ userId, role, onOpenThread }: Pick<Props, 'userId' | 'role
         </p>
       ) : (
         <ul className="list">
-          {threads.map((t) => (
-            <li key={`${t.shiftId}-${t.homeId}-${t.caregiverId}`}>
-              <button type="button" className="card-button" onClick={() => onOpenThread(t)}>
-                <span className="list-title">{t.title}</span>
-                <span className="hint">{t.shiftId ? `About: ${t.subtitle}` : t.subtitle}</span>
-              </button>
-            </li>
-          ))}
+          {[...threads]
+            .sort((a, b) => Number(unreadIn(b, unread) > 0) - Number(unreadIn(a, unread) > 0))
+            .map((t) => {
+              const count = unreadIn(t, unread);
+              return (
+                <li key={`${t.shiftId}-${t.homeId}-${t.caregiverId}`} className={count > 0 ? 'unread' : ''}>
+                  <button type="button" className="card-button" onClick={() => onOpenThread(t)}>
+                    <span className="card-top">
+                      <span className="list-title">{t.title}</span>
+                      {count > 0 && (
+                        <span className="unread-count">
+                          {count} new<span className="visually-hidden"> {count === 1 ? 'message' : 'messages'}</span>
+                        </span>
+                      )}
+                    </span>
+                    <span className="hint">{t.shiftId ? `About: ${t.subtitle}` : t.subtitle}</span>
+                  </button>
+                </li>
+              );
+            })}
         </ul>
       )}
     </section>
   );
 }
 
-function Conversation({ userId, thread, onBack, contact }: Pick<Props, 'userId' | 'onBack' | 'contact'> & { thread: Thread }) {
+function Conversation({
+  userId,
+  thread,
+  onBack,
+  contact,
+  onRead,
+}: Pick<Props, 'userId' | 'onBack' | 'contact' | 'onRead'> & { thread: Thread }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
@@ -194,6 +234,7 @@ function Conversation({ userId, thread, onBack, contact }: Pick<Props, 'userId' 
   const [shareEmail, setShareEmail] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const count = useRef(0);
+  const seen = useRef(-1);
 
   async function load() {
     if (!supabase) return;
@@ -206,7 +247,20 @@ function Conversation({ userId, thread, onBack, contact }: Pick<Props, 'userId' 
       : base.is('shift_id', null).eq('home_id', thread.homeId ?? '');
     const { data, error: err } = await scoped.order('created_at');
     if (err) setError(err.message);
-    else setMessages((data ?? []) as Message[]);
+    else {
+      const list = (data ?? []) as Message[];
+      setMessages(list);
+      // Anything the other person wrote counts as read once it is on screen.
+      if (list.some((m) => m.sender_id !== userId) && list.length !== seen.current) {
+        seen.current = list.length;
+        await supabase.rpc('mark_thread_read', {
+          p_shift: thread.shiftId,
+          p_home: thread.shiftId ? null : (thread.homeId ?? null),
+          p_caregiver: thread.caregiverId,
+        });
+        onRead();
+      }
+    }
   }
 
   useEffect(() => {
@@ -242,18 +296,23 @@ function Conversation({ userId, thread, onBack, contact }: Pick<Props, 'userId' 
     if (!supabase) return false;
     setBusy(true);
     setError('');
-    const { error: err } = await supabase.from('messages').insert({
-      shift_id: thread.shiftId,
-      home_id: thread.shiftId ? null : thread.homeId,
-      caregiver_id: thread.caregiverId,
-      sender_id: userId,
-      body,
-    });
+    const { data: saved, error: err } = await supabase
+      .from('messages')
+      .insert({
+        shift_id: thread.shiftId,
+        home_id: thread.shiftId ? null : thread.homeId,
+        caregiver_id: thread.caregiverId,
+        sender_id: userId,
+        body,
+      })
+      .select('id')
+      .single();
     setBusy(false);
     if (err) {
       setError(err.message);
       return false;
     }
+    if (saved?.id) announce(saved.id as string);
     load();
     return true;
   }

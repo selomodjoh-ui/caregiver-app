@@ -1953,3 +1953,61 @@ body.wide .band-lead {
   width: calc(100% - 36px);
   margin: 0 18px 18px;
 }
+
+/* ---------- Unread messages ---------- */
+
+.tab-icon {
+  position: relative;
+  display: inline-flex;
+}
+
+.tab-badge {
+  position: absolute;
+  top: -6px;
+  right: -12px;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: #c8321e;
+  color: #ffffff;
+  font: 700 11px/19px var(--body);
+  text-align: center;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.list > li.unread {
+  border-color: var(--berry);
+}
+
+.unread-count {
+  flex: none;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: #c8321e;
+  color: #ffffff;
+  font: 700 12px/18px var(--body);
+}
+
+.push-toggle {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: var(--rose);
+}
+
+.push-toggle .hint {
+  margin: 0;
+}

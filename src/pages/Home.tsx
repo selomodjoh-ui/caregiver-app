@@ -8,7 +8,7 @@ import MyArea from '../components/MyArea';
 import LookingFor from '../components/LookingFor';
 import TabBar, { icons, type Tab } from '../components/TabBar';
 import Credentials from './Credentials';
-import Messages from './Messages';
+import Messages, { type Unread } from './Messages';
 import Availability from './caregiver/Availability';
 import ShiftBoard from './caregiver/ShiftBoard';
 import FindCaregivers from './provider/FindCaregivers';
@@ -55,7 +55,11 @@ export default function Home({ session }: Props) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [home, setHome] = useState<HomeInfo | null>(null);
   // Coming back from the payment page lands on My home, where the package is shown.
-  const [tab, setTab] = useState<TabId>(() => (location.search.includes('billing=') ? 'home' : 'shifts'));
+  const [tab, setTab] = useState<TabId>(() =>
+    location.search.includes('billing=') ? 'home' : location.search.includes('open=messages') ? 'messages' : 'shifts',
+  );
+  // Messages the other person sent that this person has not opened yet.
+  const [unread, setUnread] = useState<Unread[]>([]);
   const [thread, setThread] = useState<Thread | null>(null);
   const [error, setError] = useState('');
   const [loaded, setLoaded] = useState(false);
@@ -104,6 +108,28 @@ export default function Home({ session }: Props) {
     setThread(t);
     setTab('messages');
   }
+
+  async function loadUnread() {
+    if (!supabase) return;
+    const { data } = await supabase
+      .from('messages')
+      .select('shift_id, home_id, caregiver_id')
+      .is('read_at', null)
+      .neq('sender_id', userId);
+    if (data) setUnread(data as Unread[]);
+  }
+
+  useEffect(() => {
+    if (location.search.includes('open=messages')) history.replaceState(null, '', '/');
+    loadUnread();
+    const timer = window.setInterval(loadUnread, 20000);
+    const onFocus = () => loadUnread();
+    window.addEventListener('focus', onFocus);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [userId]);
 
   function changeTab(next: TabId) {
     setThread(null);
@@ -172,6 +198,8 @@ export default function Home({ session }: Props) {
         {tab === 'home' && home && <Packages home={home} onChanged={loadHome} />}
         {tab === 'messages' && (
           <Messages
+            unread={unread}
+            onRead={loadUnread}
             userId={userId}
             role={profile.role}
             thread={thread}
@@ -237,7 +265,11 @@ export default function Home({ session }: Props) {
           </section>
         )}
       </main>
-      <TabBar tabs={tabs} current={tab} onChange={changeTab} />
+      <TabBar
+        tabs={tabs.map((t) => (t.id === 'messages' ? { ...t, badge: unread.length } : t))}
+        current={tab}
+        onChange={changeTab}
+      />
     </>
   );
 }

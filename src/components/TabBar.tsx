@@ -4,6 +4,8 @@ export interface Tab<T extends string> {
   id: T;
   label: string;
   icon: ReactNode;
+  /** A count to show on the tab, such as unread messages. Hidden when zero. */
+  badge?: number;
 }
 
 interface Props<T extends string> {
@@ -23,8 +25,16 @@ export default function TabBar<T extends string>({ tabs, current, onChange }: Pr
           aria-current={tab.id === current ? 'page' : undefined}
           onClick={() => onChange(tab.id)}
         >
-          {tab.icon}
+          <span className="tab-icon">
+            {tab.icon}
+            {!!tab.badge && (
+              <span className="tab-badge" aria-hidden="true">
+                {tab.badge > 9 ? '9+' : tab.badge}
+              </span>
+            )}
+          </span>
           {tab.label}
+          {!!tab.badge && <span className="visually-hidden">, {tab.badge} unread</span>}
         </button>
       ))}
     </nav>
