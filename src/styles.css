@@ -1222,15 +1222,19 @@ a:focus-visible {
 
 /* ---------- People illustration ---------- */
 
-.people {
+.people-photo {
   display: block;
   width: 100%;
-  max-width: 330px;
+  max-width: 440px;
   height: auto;
-  margin: 14px 0 -30px;
+  aspect-ratio: 928 / 620;
+  object-fit: cover;
+  margin: 16px 0 4px;
+  border-radius: 22px;
+  box-shadow: var(--shadow);
 }
 
-.band:has(.people) .band-art {
+.band:has(.people-photo) .band-art {
   display: none;
 }
 

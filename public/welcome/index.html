@@ -64,7 +64,7 @@ a:focus-visible { outline: 3px solid var(--coral); outline-offset: 3px; border-r
 .hero-text { display: flex; flex-direction: column; gap: 22px; padding-bottom: 64px; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
 .hero-note { font-size: 16px; color: var(--muted); }
-.people { width: 100%; max-width: 380px; height: auto; margin-top: 6px; }
+.people { width: 100%; max-width: 460px; height: auto; margin-top: 6px; border-radius: 24px; box-shadow: 0 18px 40px rgba(12, 24, 48, 0.16); }
 .phone { justify-self: center; width: min(320px, 100%); border: 10px solid var(--ink); border-bottom: 0; border-radius: 40px 40px 0 0; overflow: hidden; background: var(--ground); box-shadow: 0 30px 60px rgba(10, 55, 45, 0.25); }
 
 /* Sections */
@@ -186,14 +186,7 @@ footer p { max-width: 46em; }
           <a class="btn ghost" href="/?join">Fill a shift</a>
         </div>
         <p class="hero-note">Free for caregivers. Homes start with 14 days free.</p>
-        <svg class="people" role="img" aria-label="Six caregivers of different backgrounds" viewBox="0 0 330 88">
-          <g><circle cx="30" cy="27" r="21" fill="#1f1410"/><path d="M4 88C4 64 17 56 30 56s26 8 26 32z" fill="#1d3a6e"/><rect x="25" y="42" width="10" height="17" rx="4" fill="#6b4226"/><path d="M24 57l6 8 6-8z" fill="#6b4226"/><circle cx="30" cy="32" r="14" fill="#6b4226"/><circle cx="25.5" cy="31" r="1.4" fill="#1a0f0a"/><circle cx="34.5" cy="31" r="1.4" fill="#1a0f0a"/><path d="M25 36.500q5 4.5 10 0" stroke="#1a0f0a" stroke-width="1.5" stroke-linecap="round" fill="none"/></g>
-          <g transform="translate(54)"><rect x="13" y="15" width="34" height="44" rx="16" fill="#2a1a12"/><path d="M4 88C4 64 17 56 30 56s26 8 26 32z" fill="#f2b25c"/><rect x="25" y="42" width="10" height="17" rx="4" fill="#c68a5c"/><path d="M24 57l6 8 6-8z" fill="#c68a5c"/><circle cx="30" cy="32" r="14" fill="#c68a5c"/><circle cx="25.5" cy="31" r="1.4" fill="#1a0f0a"/><circle cx="34.5" cy="31" r="1.4" fill="#1a0f0a"/><path d="M25 36.500q5 4.5 10 0" stroke="#1a0f0a" stroke-width="1.5" stroke-linecap="round" fill="none"/></g>
-          <g transform="translate(108)"><circle cx="30" cy="26" r="17.5" fill="#f2b25c"/><path d="M4 88C4 64 17 56 30 56s26 8 26 32z" fill="#2f6fb5"/><rect x="25" y="42" width="10" height="17" rx="4" fill="#4f2f1c"/><path d="M24 57l6 8 6-8z" fill="#4f2f1c"/><circle cx="30" cy="32" r="14" fill="#4f2f1c"/><path d="M15 28c2-14 28-14 30 0-7-7-23-7-30 0z" fill="#f2b25c"/><circle cx="43" cy="13" r="5.5" fill="#f2b25c"/><circle cx="25.5" cy="31" r="1.4" fill="#1a0f0a"/><circle cx="34.5" cy="31" r="1.4" fill="#1a0f0a"/><path d="M25 36.500q5 4.5 10 0" stroke="#1a0f0a" stroke-width="1.5" stroke-linecap="round" fill="none"/></g>
-          <g transform="translate(162)"><circle cx="30" cy="28.5" r="15.5" fill="#8c8f93"/><path d="M4 88C4 64 17 56 30 56s26 8 26 32z" fill="#1d3a6e"/><rect x="25" y="42" width="10" height="17" rx="4" fill="#f0c9a4"/><path d="M24 57l6 8 6-8z" fill="#f0c9a4"/><circle cx="30" cy="32" r="14" fill="#f0c9a4"/><circle cx="25.5" cy="31" r="1.4" fill="#1a0f0a"/><circle cx="34.5" cy="31" r="1.4" fill="#1a0f0a"/><path d="M25 36.500q5 4.5 10 0" stroke="#1a0f0a" stroke-width="1.5" stroke-linecap="round" fill="none"/></g>
-          <g transform="translate(216)"><circle cx="30" cy="9" r="7" fill="#1f1410"/><circle cx="30" cy="28" r="16" fill="#1f1410"/><path d="M4 88C4 64 17 56 30 56s26 8 26 32z" fill="#e9b949"/><rect x="25" y="42" width="10" height="17" rx="4" fill="#8a5a3a"/><path d="M24 57l6 8 6-8z" fill="#8a5a3a"/><circle cx="30" cy="32" r="14" fill="#8a5a3a"/><circle cx="25.5" cy="31" r="1.4" fill="#1a0f0a"/><circle cx="34.5" cy="31" r="1.4" fill="#1a0f0a"/><path d="M25 36.500q5 4.5 10 0" stroke="#1a0f0a" stroke-width="1.5" stroke-linecap="round" fill="none"/></g>
-          <g transform="translate(270)"><path d="M4 88C4 64 17 56 30 56s26 8 26 32z" fill="#f2b25c"/><rect x="25" y="42" width="10" height="17" rx="4" fill="#b97a4e"/><path d="M30 8C16 8 10 20 10 34c0 16 4 28 20 32 16-4 20-16 20-32C50 20 44 8 30 8z" fill="#23578f"/><circle cx="30" cy="32" r="12.5" fill="#b97a4e"/><circle cx="25.5" cy="31" r="1.4" fill="#1a0f0a"/><circle cx="34.5" cy="31" r="1.4" fill="#1a0f0a"/><path d="M25 36.500q5 4.5 10 0" stroke="#1a0f0a" stroke-width="1.5" stroke-linecap="round" fill="none"/></g>
-        </svg>
+        <img class="people" src="/people.jpg" width="928" height="620" alt="Two caregivers in scrubs, smiling, arms folded">
       </div>
       <div class="phone">
         <img src="app-shifts.jpg" width="585" height="1170" alt="The ShiftKind app showing open shifts with pay and ratings">
