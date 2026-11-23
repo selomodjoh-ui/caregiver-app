@@ -1717,3 +1717,58 @@ body.wide .band-lead {
   font-weight: 600;
   white-space: nowrap;
 }
+
+/* Sign-up: the line that points to the terms and privacy pages. */
+.agree {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  text-align: center;
+}
+
+.agree a {
+  color: var(--berry);
+  font-weight: 600;
+}
+
+/* Me tab: deleting your own account. Quiet until opened. */
+.delete-account-link {
+  margin: 28px 0 0;
+  text-align: center;
+  font-size: 15px;
+}
+
+.delete-account {
+  margin-top: 28px;
+  padding: 20px;
+  border: 2px solid var(--error-ink);
+  border-radius: 20px;
+  display: grid;
+  gap: 14px;
+}
+
+.delete-account h3,
+.delete-account p {
+  margin: 0;
+}
+
+.delete-account-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.btn.danger {
+  background: var(--error-ink);
+  color: #ffffff;
+}
+
+.btn.danger:disabled {
+  opacity: 0.45;
+}
+
+/* Find caregivers: the caregiver's own note on the work they want. */
+.looking-for {
+  margin: 0;
+  font-size: 15px;
+  color: var(--ink);
+}

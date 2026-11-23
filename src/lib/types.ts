@@ -83,6 +83,8 @@ export interface CaregiverCard {
   id: string;
   first_name: string;
   surname_initial: string;
+  /** The caregiver's own note on the work they want; may be empty. */
+  looking_for?: string | null;
 }
 
 export interface CredentialSummary {

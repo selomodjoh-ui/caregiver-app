@@ -14,6 +14,26 @@ export default function SignIn({ onSwitch }: Props) {
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [forgot, setForgot] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+
+  async function sendReset(e: FormEvent) {
+    e.preventDefault();
+    if (!supabase) return;
+    setError('');
+    setBusy(true);
+    try {
+      const { error: err } = await withTimeout(
+        supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/` }),
+      );
+      if (err) setError(err.message);
+      else setResetSent(true);
+    } catch (e) {
+      setError(messageOf(e));
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -27,7 +47,7 @@ export default function SignIn({ onSwitch }: Props) {
       if (err) {
         setError(
           err.message === 'Email not confirmed'
-            ? 'Your email is not confirmed yet. Open the confirmation email we sent and click the link, then sign in.'
+            ? 'Your email is not confirmed yet. Open the confirmation email we sent and click the link, then sign in. If you cannot find it, check your spam or junk folder.'
             : err.message === 'Invalid login credentials'
               ? 'That email and password do not match an account. Check both and try again.'
               : err.message,
@@ -38,6 +58,67 @@ export default function SignIn({ onSwitch }: Props) {
     } finally {
       setBusy(false);
     }
+  }
+
+  if (forgot) {
+    return (
+      <>
+        <Band title="Reset your password" lead="We'll email you a link to choose a new one." />
+        <main className="content">
+          {resetSent ? (
+            <>
+              <p className="notice-bar inline" role="status">
+                If {email.trim()} has a ShiftKind account, a reset link is on its way. It can take a few minutes. If
+                you don't see it, check your spam or junk folder.
+              </p>
+              <button
+                type="button"
+                className="btn secondary"
+                onClick={() => {
+                  setForgot(false);
+                  setResetSent(false);
+                }}
+              >
+                Back to sign in
+              </button>
+            </>
+          ) : (
+            <form onSubmit={sendReset} className="form">
+              <div className="field">
+                <label htmlFor="fp-email">Email</label>
+                <input
+                  id="fp-email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              {error && (
+                <p className="error" role="alert">
+                  {error}
+                </p>
+              )}
+              <button type="submit" className="btn" disabled={busy}>
+                {busy ? 'Sending…' : 'Email me a reset link'}
+              </button>
+              <button
+                type="button"
+                className="btn secondary"
+                onClick={() => {
+                  setForgot(false);
+                  setError('');
+                }}
+              >
+                Back to sign in
+              </button>
+            </form>
+          )}
+          <Help />
+        </main>
+      </>
+    );
   }
 
   return (
@@ -90,6 +171,18 @@ export default function SignIn({ onSwitch }: Props) {
           <button type="submit" className="btn" disabled={busy}>
             {busy ? 'Signing in…' : 'Sign in'}
           </button>
+          <p className="switch">
+            <button
+              type="button"
+              className="link"
+              onClick={() => {
+                setForgot(true);
+                setError('');
+              }}
+            >
+              Forgot password?
+            </button>
+          </p>
         </form>
 
         <p className="switch">

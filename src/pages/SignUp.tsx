@@ -27,6 +27,28 @@ export default function SignUp({ onSwitch }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [sent, setSent] = useState(false);
+  const [resendNote, setResendNote] = useState('');
+  const [resending, setResending] = useState(false);
+
+  async function resend() {
+    if (!supabase || resending) return;
+    setResending(true);
+    setResendNote('');
+    try {
+      const { error: err } = await withTimeout(supabase.auth.resend({ type: 'signup', email: email.trim() }));
+      setResendNote(
+        err
+          ? err.message.toLowerCase().includes('seconds')
+            ? 'Please wait a minute before asking for another email.'
+            : err.message
+          : 'We sent the email again. Give it a few minutes.',
+      );
+    } catch (e) {
+      setResendNote(messageOf(e));
+    } finally {
+      setResending(false);
+    }
+  }
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -75,9 +97,22 @@ export default function SignUp({ onSwitch }: Props) {
         <Band title="Check your email" lead={`We sent a link to ${email}.`} />
         <main className="content">
           <p className="hint">Open the link to finish creating your account, then sign in.</p>
-          <button type="button" className="btn secondary" onClick={onSwitch}>
+          <p className="notice-bar inline">
+            The email can take a few minutes. If you don't see it, check your spam or junk folder and mark it "Not
+            spam" so the link works.
+          </p>
+          {resendNote && (
+            <p className="hint" role="status">
+              {resendNote}
+            </p>
+          )}
+          <button type="button" className="btn" onClick={onSwitch}>
             Go to sign in
           </button>
+          <button type="button" className="btn secondary" disabled={resending} onClick={resend}>
+            {resending ? 'Sending…' : 'Send the email again'}
+          </button>
+          <Help />
         </main>
       </>
     );
@@ -191,12 +226,16 @@ export default function SignUp({ onSwitch }: Props) {
           </div>
 
           <div className="field">
-            <label htmlFor="su-addr">Home address</label>
+            <label htmlFor="su-addr">ZIP code</label>
             <input
               id="su-addr"
-              autoComplete="street-address"
+              autoComplete="postal-code"
+              inputMode="numeric"
+              pattern="[0-9]{5}"
+              maxLength={5}
+              title="Five digits, for example 98335"
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              onChange={(e) => setAddress(e.target.value.replace(/[^0-9]/g, ''))}
             />
           </div>
 
@@ -237,6 +276,10 @@ export default function SignUp({ onSwitch }: Props) {
           <button type="submit" className="btn" disabled={busy}>
             {busy ? 'Creating account…' : 'Create account'}
           </button>
+          <p className="agree">
+            By creating an account you agree to the <a href="/terms/">Terms of use</a> and the{' '}
+            <a href="/privacy/">Privacy policy</a>.
+          </p>
         </form>
 
         <p className="switch">

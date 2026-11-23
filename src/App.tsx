@@ -5,6 +5,7 @@ import Band from './components/Band';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import Home from './pages/Home';
+import NewPassword from './pages/NewPassword';
 
 type View = 'signin' | 'signup';
 
@@ -12,6 +13,8 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState('');
+  // True after someone arrives from a "reset your password" email, until they save a new one.
+  const [recovering, setRecovering] = useState(false);
   const [view, setView] = useState<View>(() => (location.search.includes('signin') ? 'signin' : 'signup'));
 
   useEffect(() => {
@@ -30,7 +33,13 @@ export default function App() {
         history.replaceState(null, '', '/');
         if (error) {
           setView('signin');
-          setNotice('That link has expired or was already used. Sign in below, or sign up again to get a new one.');
+          setNotice(
+            type === 'recovery'
+              ? 'That link has expired or was already used. Choose "Forgot password?" below to get a new one.'
+              : 'That link has expired or was already used. Sign in below, or sign up again to get a new one.',
+          );
+        } else if (type === 'recovery') {
+          setRecovering(true);
         }
       }
       const { data } = await client.auth.getSession();
@@ -38,7 +47,8 @@ export default function App() {
       setLoading(false);
     };
     start();
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, next) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, next) => {
+      if (event === 'PASSWORD_RECOVERY') setRecovering(true);
       setSession(next);
     });
     return () => listener.subscription.unsubscribe();
@@ -76,7 +86,9 @@ export default function App() {
           {notice}
         </p>
       )}
-      {session ? (
+      {session && recovering ? (
+        <NewPassword onDone={() => setRecovering(false)} />
+      ) : session ? (
         <Home session={session} />
       ) : view === 'signup' ? (
         <SignUp onSwitch={() => setView('signin')} />

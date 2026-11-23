@@ -5,6 +5,7 @@ import type { HomeInfo, Thread } from '../lib/types';
 import Band from '../components/Band';
 import MyRatings from '../components/MyRatings';
 import MyArea from '../components/MyArea';
+import LookingFor from '../components/LookingFor';
 import TabBar, { icons, type Tab } from '../components/TabBar';
 import Credentials from './Credentials';
 import Messages from './Messages';
@@ -16,6 +17,7 @@ import Packages from './provider/Packages';
 import ProviderShifts from './provider/ProviderShifts';
 import Reports from './provider/Reports';
 import Help from '../components/Help';
+import DeleteAccount from '../components/DeleteAccount';
 import Admin from './admin/Admin';
 
 interface Props {
@@ -182,6 +184,7 @@ export default function Home({ session }: Props) {
           />
         )}
         {tab === 'account' && <MyRatings userId={userId} />}
+        {tab === 'account' && !isProvider && <LookingFor userId={userId} />}
         {tab === 'account' && !isProvider && <MyArea userId={userId} />}
         {tab === 'account' && (
           <section className="section">
@@ -209,7 +212,7 @@ export default function Home({ session }: Props) {
               )}
               {profile.address && (
                 <div>
-                  <dt>Address</dt>
+                  <dt>{/^[0-9]{5}$/.test(profile.address) ? 'ZIP code' : 'Address'}</dt>
                   <dd>{profile.address}</dd>
                 </div>
               )}
@@ -230,6 +233,7 @@ export default function Home({ session }: Props) {
               Sign out
             </button>
             <Help />
+            <DeleteAccount isProvider={isProvider} />
           </section>
         )}
       </main>

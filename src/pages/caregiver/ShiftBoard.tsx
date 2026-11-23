@@ -54,6 +54,8 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
   const [meNote, setMeNote] = useState('');
   const [pinId, setPinId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
+  const [weekday, setWeekday] = useState('any');
+  const [size, setSize] = useState<'any' | 'small' | 'mid' | 'large'>('any');
 
   async function load() {
     if (!supabase) return;
@@ -150,6 +152,14 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
     .filter((s) => {
       if (show === 'fits' && !fits(s)) return false;
       if ((show === 'day' || show === 'night') && partOf(s.start_time) !== show) return false;
+      // Midday avoids the date slipping a day in time zones behind UTC.
+      if (weekday !== 'any' && new Date(`${s.shift_date}T12:00:00`).getDay() !== Number(weekday)) return false;
+      if (size !== 'any') {
+        const residents = (s.homes?.bed_bound ?? 0) + (s.homes?.assisted ?? 0) + (s.homes?.independent ?? 0);
+        if (size === 'small' && residents > 2) return false;
+        if (size === 'mid' && (residents < 3 || residents > 4)) return false;
+        if (size === 'large' && residents < 5) return false;
+      }
       if (!words) return true;
       return `${s.homes?.name ?? ''} ${s.homes?.address ?? ''}`.toLowerCase().includes(words);
     })
@@ -403,7 +413,7 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
             </div>
             <div className="row">
               <div className="field">
-                <label htmlFor="sb-search">Home or town</label>
+                <label htmlFor="sb-search">City, ZIP code or home name</label>
                 <input id="sb-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} />
               </div>
               <div className="field">
@@ -412,6 +422,28 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
                   <option value="soonest">Soonest</option>
                   <option value="pay">Highest pay</option>
                   {me && <option value="near">Nearest</option>}
+                </select>
+              </div>
+            </div>
+            <div className="row">
+              <div className="field">
+                <label htmlFor="sb-day">Day of the week</label>
+                <select id="sb-day" value={weekday} onChange={(e) => setWeekday(e.target.value)}>
+                  <option value="any">Any day</option>
+                  {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((d, i) => (
+                    <option key={d} value={i}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="field">
+                <label htmlFor="sb-size">Residents in the home</label>
+                <select id="sb-size" value={size} onChange={(e) => setSize(e.target.value as typeof size)}>
+                  <option value="any">Any number</option>
+                  <option value="small">1 or 2</option>
+                  <option value="mid">3 or 4</option>
+                  <option value="large">5 or more</option>
                 </select>
               </div>
             </div>
