@@ -36,7 +36,7 @@ export default function App() {
           setNotice(
             type === 'recovery'
               ? 'That link has expired or was already used. Choose "Forgot password?" below to get a new one.'
-              : 'That link has expired or was already used. Sign in below, or sign up again to get a new one.',
+              : 'That link was already used or has expired. If you have confirmed your email, sign in below with the password you chose when you first signed up. Forgotten it? Choose "Forgot password?".',
           );
         } else if (type === 'recovery') {
           setRecovering(true);

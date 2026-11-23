@@ -28,6 +28,7 @@ export default function SignUp({ onSwitch }: Props) {
   const [error, setError] = useState('');
   const [sent, setSent] = useState(false);
   const [resendNote, setResendNote] = useState('');
+  const [repeat, setRepeat] = useState(false);
   const [resending, setResending] = useState(false);
 
   async function resend() {
@@ -82,6 +83,10 @@ export default function SignUp({ onSwitch }: Props) {
         setError('This email already has a ShiftKind account. Sign in with it, or use a different email.');
         return;
       }
+      // Signing up a second time with an email that was never confirmed sends the link again,
+      // but keeps the first password. The account's age tells the two cases apart.
+      const made = data.user?.created_at ? new Date(data.user.created_at).getTime() : Date.now();
+      setRepeat(Date.now() - made > 2 * 60 * 1000);
       // With email confirmation on, there is no session until the link is clicked.
       if (!data.session) setSent(true);
     } catch (e) {
@@ -97,6 +102,13 @@ export default function SignUp({ onSwitch }: Props) {
         <Band title="Check your email" lead={`We sent a link to ${email}.`} />
         <main className="content">
           <p className="hint">Open the link to finish creating your account, then sign in.</p>
+          {repeat && (
+            <p className="notice-bar inline" role="status">
+              You signed up with this email before, so we sent the link again. Your password is still the one you
+              chose the first time. If you do not remember it, confirm your email, then choose “Forgot password?”
+              on the sign-in screen.
+            </p>
+          )}
           <p className="notice-bar inline">
             The email can take a few minutes. If you don't see it, check your spam or junk folder and mark it "Not
             spam" so the link works.

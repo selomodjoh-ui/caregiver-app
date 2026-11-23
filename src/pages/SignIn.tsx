@@ -49,7 +49,7 @@ export default function SignIn({ onSwitch }: Props) {
           err.message === 'Email not confirmed'
             ? 'Your email is not confirmed yet. Open the confirmation email we sent and click the link, then sign in. If you cannot find it, check your spam or junk folder.'
             : err.message === 'Invalid login credentials'
-              ? 'That email and password do not match an account. Check both and try again.'
+              ? 'That email and password do not match. Check both and try again, or choose "Forgot password?" below to set a new password.'
               : err.message,
         );
       }
