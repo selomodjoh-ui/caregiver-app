@@ -9,6 +9,8 @@ import {
   isFeatured,
   isCurrent,
   partOf,
+  formatDate,
+  formatTime,
   payForShift,
   payText,
   hoursBetween,
@@ -54,7 +56,7 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
   const [meNote, setMeNote] = useState('');
   const [pinId, setPinId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
-  const [weekday, setWeekday] = useState('any');
+  const [dayPick, setDayPick] = useState('any');
   const [size, setSize] = useState<'any' | 'small' | 'mid' | 'large'>('any');
 
   async function load() {
@@ -152,8 +154,7 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
     .filter((s) => {
       if (show === 'fits' && !fits(s)) return false;
       if ((show === 'day' || show === 'night') && partOf(s.start_time) !== show) return false;
-      // Midday avoids the date slipping a day in time zones behind UTC.
-      if (weekday !== 'any' && new Date(`${s.shift_date}T12:00:00`).getDay() !== Number(weekday)) return false;
+      if (dayPick !== 'any' && s.shift_date !== dayPick) return false;
       if (size !== 'any') {
         const residents = (s.homes?.bed_bound ?? 0) + (s.homes?.assisted ?? 0) + (s.homes?.independent ?? 0);
         if (size === 'small' && residents > 2) return false;
@@ -174,6 +175,17 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
           Number(fits(b)) - Number(fits(a)) ||
           a.start_time.localeCompare(b.start_time),
     );
+
+  // The first shift in view that fits the caregiver's free time and is still open to apply for.
+  const bestId =
+    open.find((s) => fits(s) && (!appFor(s.id) || appFor(s.id)?.status === 'withdrawn'))?.id ?? null;
+  // The next two weeks as tappable days; a dot marks a day that has open shifts.
+  const days = Array.from({ length: 14 }, (_, i) => {
+    const d = new Date(`${today}T12:00:00`);
+    d.setDate(d.getDate() + i);
+    const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    return { iso, d, has: allOpen.some((s) => s.shift_date === iso) };
+  });
 
   // One pin per home, counting that home's open shifts in the current filter.
   const pins: Pin[] = [];
@@ -198,7 +210,7 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
     }
   }
 
-  function card(shift: Shift) {
+  function card(shift: Shift, isBest = false) {
     const app = appFor(shift.id);
     const home = shift.homes;
     const isOpen = openId === shift.id;
@@ -206,25 +218,48 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
     const hours = hoursBetween(shift.start_time, shift.end_time);
     const total = payForShift(shift, hours);
     const isMine = app?.status === 'accepted';
+    // Midday keeps the date from slipping a day in time zones behind UTC.
+    const when = new Date(`${shift.shift_date}T12:00:00`);
+    const canApply = !app || app.status === 'withdrawn';
     return (
-      <li key={shift.id} className={isOpen ? 'open' : ''}>
+      <li key={shift.id} className={[isOpen ? 'open' : '', isBest ? 'best' : ''].join(' ').trim()}>
         <button
           type="button"
           className="card-button"
           aria-expanded={isOpen}
           onClick={() => setOpenId(isOpen ? null : shift.id)}
         >
-          <span className="card-top">
-            <span className="list-title">{shiftTitle(shift)}</span>
-            {shift.pay_rate != null && <span className="pay">{payText(shift)}</span>}
-          </span>
-          <span className="hint">{home?.name ?? 'Adult family home'}</span>
-          {total != null && (
-            <span className="earn">
-              {isMine ? 'You earn' : 'You would earn'} {money(total)}
-              {shift.pay_type === 'hour' && ` for ${hoursLabel(hours)}`}
+          <span className="shift-head">
+            {!isBest && (
+              <span className="date-block" aria-hidden="true">
+                <small>{when.toLocaleDateString('en-US', { weekday: 'short' })}</small>
+                <b>{when.getDate()}</b>
+              </span>
+            )}
+            <span className="shift-when">
+              {isBest && <span className="chip ok best-tag">Fits your free time</span>}
+              <span className="shift-date">
+                {isBest && `${formatDate(shift.shift_date)}, `}
+                {partOf(shift.start_time) === 'night' ? (isBest ? 'night' : 'Night shift') : isBest ? 'day' : 'Day shift'}
+              </span>
+              <span className="shift-time">
+                {formatTime(shift.start_time)} to {formatTime(shift.end_time)}
+              </span>
             </span>
-          )}
+            {(total != null || shift.pay_rate != null) && (
+              <span className="shift-pay">
+                <b>{total != null ? (Number.isInteger(total) ? `$${total}` : money(total)) : payText(shift)}</b>
+                {total != null && (
+                  <small>
+                    {payText(shift)}
+                    {shift.pay_type === 'hour' && `, ${hoursLabel(hours)}`}
+                  </small>
+                )}
+              </span>
+            )}
+          </span>
+          <span className={isBest ? 'list-title' : 'hint'}>{home?.name ?? 'Adult family home'}</span>
+          {isMine && total != null && <span className="earn">You earn {money(total)}</span>}
           <RatingLine summary={summaries.find((x) => x.ratee_id === shift.home_id)} />
           <span className="chips">
             {app?.status === 'accepted' && <span className="chip ok">Yours</span>}
@@ -233,7 +268,7 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
             {app?.status === 'declined' && <span className="chip bad">Not selected</span>}
             {isFeatured(home) && <span className="chip warn">Featured home</span>}
             {milesTo(shift) != null && <span className="chip">{milesText(milesTo(shift)!)}</span>}
-            {fits(shift) && <span className="chip ok">Fits your free time</span>}
+            {fits(shift) && !isBest && <span className="chip ok">Fits your free time</span>}
             {shift.preferred_sex && (
               <span className="chip">{shift.preferred_sex === 'female' ? 'Female' : 'Male'} caregiver requested</span>
             )}
@@ -241,6 +276,11 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
             {mix && <span className="chip">{mix}</span>}
           </span>
         </button>
+        {isBest && !isOpen && canApply && (
+          <button type="button" className="btn best-apply" disabled={busy} onClick={() => apply(shift)}>
+            Apply for this shift
+          </button>
+        )}
 
         {isOpen && (
           <div className="form inset">
@@ -364,14 +404,14 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
       {offers.length > 0 && (
         <section className="section">
           <h2>Offered to you</h2>
-          <ul className="list">{offers.map(card)}</ul>
+          <ul className="list">{offers.map((s) => card(s))}</ul>
         </section>
       )}
 
       {mine.length > 0 && (
         <section className="section">
           <h2>Your shifts</h2>
-          <ul className="list">{mine.map(card)}</ul>
+          <ul className="list">{mine.map((s) => card(s))}</ul>
         </section>
       )}
 
@@ -379,7 +419,7 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
         <section className="section">
           <h2>Past shifts</h2>
           <p className="hint">Open one to rate the home.</p>
-          <ul className="list">{past.map(card)}</ul>
+          <ul className="list">{past.map((s) => card(s))}</ul>
         </section>
       )}
 
@@ -411,32 +451,32 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
                 </button>
               ))}
             </div>
-            <div className="row">
-              <div className="field">
-                <label htmlFor="sb-search">City, ZIP code or home name</label>
-                <input id="sb-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} />
-              </div>
-              <div className="field">
-                <label htmlFor="sb-sort">Sort by</label>
-                <select id="sb-sort" value={sort} onChange={(e) => setSort(e.target.value as 'soonest' | 'pay' | 'near')}>
-                  <option value="soonest">Soonest</option>
-                  <option value="pay">Highest pay</option>
-                  {me && <option value="near">Nearest</option>}
-                </select>
-              </div>
+            <div className="day-strip" role="group" aria-label="Day">
+              <button type="button" className={dayPick === 'any' ? 'on' : ''} aria-pressed={dayPick === 'any'} onClick={() => setDayPick('any')}>
+                <small>Any</small>
+                <b>All</b>
+                <span className="dot" />
+              </button>
+              {days.map(({ iso, d, has: hasShifts }) => (
+                <button
+                  key={iso}
+                  type="button"
+                  className={[dayPick === iso ? 'on' : '', hasShifts ? 'has' : ''].join(' ').trim()}
+                  aria-pressed={dayPick === iso}
+                  aria-label={`${d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}${hasShifts ? ', has open shifts' : ', no open shifts'}`}
+                  onClick={() => setDayPick(dayPick === iso ? 'any' : iso)}
+                >
+                  <small>{d.toLocaleDateString('en-US', { weekday: 'short' })}</small>
+                  <b>{d.getDate()}</b>
+                  <span className="dot" />
+                </button>
+              ))}
+            </div>
+            <div className="field">
+              <label htmlFor="sb-search">City, ZIP code or home name</label>
+              <input id="sb-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} />
             </div>
             <div className="row">
-              <div className="field">
-                <label htmlFor="sb-day">Day of the week</label>
-                <select id="sb-day" value={weekday} onChange={(e) => setWeekday(e.target.value)}>
-                  <option value="any">Any day</option>
-                  {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((d, i) => (
-                    <option key={d} value={i}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
-              </div>
               <div className="field">
                 <label htmlFor="sb-size">Residents in the home</label>
                 <select id="sb-size" value={size} onChange={(e) => setSize(e.target.value as typeof size)}>
@@ -444,6 +484,14 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
                   <option value="small">1 or 2</option>
                   <option value="mid">3 or 4</option>
                   <option value="large">5 or more</option>
+                </select>
+              </div>
+              <div className="field">
+                <label htmlFor="sb-sort">Sort by</label>
+                <select id="sb-sort" value={sort} onChange={(e) => setSort(e.target.value as 'soonest' | 'pay' | 'near')}>
+                  <option value="soonest">Soonest</option>
+                  <option value="pay">Highest pay</option>
+                  {me && <option value="near">Nearest</option>}
                 </select>
               </div>
             </div>
@@ -472,9 +520,11 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
               </div>
             )}
             {open.length === 0 ? (
-              <p className="hint">Nothing matches. Choose "All" or clear the search to see every open shift.</p>
+              <p className="hint">Nothing matches. Choose "All" in both rows or clear the search to see every open shift.</p>
             ) : view === 'list' ? (
-              <ul className="list">{open.map(card)}</ul>
+              <ul className="list">{[...open.filter((s) => s.id === bestId), ...open.filter((s) => s.id !== bestId)].map((s) =>
+                  card(s, s.id === bestId),
+                )}</ul>
             ) : (
               <>
                 <MapView
@@ -489,7 +539,7 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
                 ) : atPin.length > 0 ? (
                   <>
                     <h3>{atPin[0].homes?.name ?? 'This home'}</h3>
-                    <ul className="list">{atPin.map(card)}</ul>
+                    <ul className="list">{atPin.map((s) => card(s))}</ul>
                   </>
                 ) : (
                   <p className="hint" role="status">

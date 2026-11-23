@@ -1772,3 +1772,184 @@ body.wide .band-lead {
   font-size: 15px;
   color: var(--ink);
 }
+
+/* ---------- Floating tab bar ---------- */
+
+.content.with-tabs {
+  padding-bottom: 132px;
+}
+
+.tabs {
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  width: calc(100% - 28px);
+  max-width: 452px;
+  padding: 8px;
+  border: none;
+  border-radius: 36px;
+  box-shadow: 0 10px 28px rgba(8, 38, 31, 0.16), 0 0 0 1px rgba(8, 38, 31, 0.05);
+}
+
+.tabs button {
+  border-radius: 28px;
+}
+
+/* ---------- Shift board: day strip ---------- */
+
+.day-strip {
+  display: flex;
+  gap: 8px;
+  margin: 0 -20px;
+  padding: 2px 20px 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.day-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.day-strip button {
+  flex: 0 0 54px;
+  min-height: 74px;
+  border: none;
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.day-strip small {
+  font: 600 12px var(--body);
+  color: var(--muted);
+}
+
+.day-strip b {
+  font: 700 19px var(--display);
+}
+
+.day-strip .dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.day-strip .has .dot {
+  background: var(--teal);
+}
+
+.day-strip button.on {
+  background: var(--berry);
+  color: #ffffff;
+}
+
+.day-strip button.on small {
+  color: #cfe3da;
+}
+
+.day-strip button.on.has .dot {
+  background: #f6a48a;
+}
+
+/* ---------- Shift cards: when on the left, pay on the right ---------- */
+
+.shift-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.date-block {
+  flex: 0 0 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--rose);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.date-block small {
+  font: 700 11px var(--body);
+  color: var(--muted);
+}
+
+.date-block b {
+  font: 700 18px/1.1 var(--display);
+  color: var(--berry);
+}
+
+.shift-when {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.shift-date {
+  font: 600 14px var(--body);
+  color: var(--muted);
+}
+
+.shift-time {
+  font: 700 17px/1.2 var(--display);
+}
+
+.shift-pay {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.shift-pay b {
+  font: 800 20px/1.1 var(--display);
+  color: var(--teal);
+}
+
+.shift-pay small {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* The first shift that fits the caregiver's free time. */
+.list li.best {
+  border: 2px solid var(--berry);
+  border-radius: 26px;
+  box-shadow: 0 8px 22px rgba(8, 38, 31, 0.08);
+}
+
+.best .card-button {
+  padding: 16px 18px;
+  gap: 8px;
+}
+
+.best .shift-head {
+  align-items: flex-end;
+}
+
+.best .best-tag {
+  margin-bottom: 6px;
+}
+
+.best .shift-time {
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.best .shift-pay b {
+  font-size: 30px;
+}
+
+.best-apply {
+  width: calc(100% - 36px);
+  margin: 0 18px 18px;
+}
