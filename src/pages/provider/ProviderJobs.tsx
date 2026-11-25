@@ -47,7 +47,7 @@ export default function ProviderJobs({ userId, home, onOpenThread, onNeedHome }:
   const [error, setError] = useState('');
 
   const [title, setTitle] = useState('');
-  const [kind, setKind] = useState<Job['kind']>('full_time');
+  const [kind, setKind] = useState<Job['kind']>('live_in');
   const [schedule, setSchedule] = useState('');
   const [pay, setPay] = useState('');
   const [unit, setUnit] = useState<Job['pay_unit']>('hour');
