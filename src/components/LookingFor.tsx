@@ -10,18 +10,33 @@ export default function LookingFor({ userId }: { userId: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
+  const [permanent, setPermanent] = useState(false);
+
+  /** Saves straight away, and puts the switch back if saving fails. */
+  async function togglePermanent() {
+    if (!supabase) return;
+    const next = !permanent;
+    setPermanent(next);
+    setError('');
+    const { error: err } = await supabase.from('profiles').update({ open_to_permanent: next }).eq('id', userId);
+    if (err) {
+      setPermanent(!next);
+      setError('We could not save that. Please try again.');
+    }
+  }
 
   useEffect(() => {
     if (!supabase) return;
     supabase
       .from('profiles')
-      .select('looking_for')
+      .select('looking_for, open_to_permanent')
       .eq('id', userId)
       .maybeSingle()
       .then(({ data }) => {
         const text = (data as { looking_for?: string | null } | null)?.looking_for ?? '';
         setSaved(text);
         setDraft(text);
+        setPermanent((data as { open_to_permanent?: boolean | null } | null)?.open_to_permanent === true);
       });
   }, [userId]);
 
@@ -49,6 +64,13 @@ export default function LookingFor({ userId }: { userId: string }) {
         Tell homes what suits you, such as nights only, weekends, or regular shifts with one home. They see this
         note when they look for caregivers.
       </p>
+      <label className="switch-row">
+        <input type="checkbox" checked={permanent} onChange={togglePermanent} />
+        <span>
+          <strong>I'm open to a permanent or long-term job</strong>
+          <span className="hint">Homes that are hiring can find you and message you.</span>
+        </span>
+      </label>
       <div className="field">
         <label htmlFor="looking-for">My note to homes</label>
         <textarea

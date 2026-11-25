@@ -2133,3 +2133,87 @@ body.wide .band-lead {
   align-items: center;
   gap: 16px;
 }
+
+/* ---------- Permanent jobs ---------- */
+
+.work-switch {
+  margin-bottom: 4px;
+}
+
+.segmented.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.job-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+}
+
+.job-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.job-pay {
+  white-space: nowrap;
+  font-size: 17px;
+}
+
+.job-line,
+.job-text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.job-text {
+  color: var(--muted);
+  white-space: pre-line;
+}
+
+.filter-chips {
+  margin-bottom: 10px;
+}
+
+.chip.pick {
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  min-height: 36px;
+  padding: 6px 14px;
+}
+
+.chip.pick.on {
+  background: var(--berry);
+  color: #ffffff;
+}
+
+.switch-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  background: var(--surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+
+.switch-row input {
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+  accent-color: var(--berry);
+  flex-shrink: 0;
+}
+
+.switch-row span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}

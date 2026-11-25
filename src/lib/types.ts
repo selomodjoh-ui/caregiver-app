@@ -85,6 +85,8 @@ export interface CaregiverCard {
   surname_initial: string;
   /** The caregiver's own note on the work they want; may be empty. */
   looking_for?: string | null;
+  /** True when the caregiver says they would take a permanent or long-term job. */
+  open_to_permanent?: boolean | null;
 }
 
 export interface CredentialSummary {
@@ -229,4 +231,47 @@ export function isFeatured(home: Pick<HomeInfo, 'plan' | 'plan_until'> | null | 
 export function isCurrent(c: { expires_on: string | null } | undefined): boolean {
   if (!c) return false;
   return !c.expires_on || c.expires_on >= todayText();
+}
+
+/** A permanent or long-term position a home is hiring for. */
+export interface Job {
+  id: string;
+  home_id: string;
+  title: string;
+  kind: 'full_time' | 'part_time' | 'live_in';
+  schedule: string | null;
+  pay_amount: number | string | null;
+  pay_unit: 'hour' | 'day' | 'month';
+  start_date: string | null;
+  requirements: string[];
+  description: string | null;
+  status: 'open' | 'filled' | 'closed';
+  created_at: string;
+  expires_on: string;
+  homes?: Pick<HomeInfo, 'name' | 'address' | 'license_verified' | 'bed_bound' | 'assisted' | 'independent' | 'lat' | 'lng'> | null;
+}
+
+export interface JobApplication {
+  id: string;
+  job_id: string;
+  caregiver_id: string;
+  note: string | null;
+  status: 'applied' | 'shortlisted' | 'hired' | 'declined' | 'withdrawn';
+  created_at: string;
+}
+
+export const JOB_KINDS: { kind: Job['kind']; label: string }[] = [
+  { kind: 'full_time', label: 'Full-time' },
+  { kind: 'part_time', label: 'Part-time' },
+  { kind: 'live_in', label: 'Live-in' },
+];
+
+export const jobKindLabel = (kind: string) => JOB_KINDS.find((k) => k.kind === kind)?.label ?? kind;
+
+/** "$22.00 an hour", "$180.00 a day", "$4,200.00 a month", or "" when no pay was given. */
+export function jobPayText(job: Pick<Job, 'pay_amount' | 'pay_unit'>): string {
+  const n = Number(job.pay_amount);
+  if (job.pay_amount === null || job.pay_amount === '' || !Number.isFinite(n) || n <= 0) return '';
+  const money = n.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+  return `${money} ${job.pay_unit === 'hour' ? 'an hour' : job.pay_unit === 'day' ? 'a day' : 'a month'}`;
 }

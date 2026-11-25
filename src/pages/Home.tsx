@@ -11,6 +11,8 @@ import TabBar, { icons, type Tab } from '../components/TabBar';
 import Credentials from './Credentials';
 import Messages, { type Unread } from './Messages';
 import Availability from './caregiver/Availability';
+import JobBoard from './caregiver/JobBoard';
+import ProviderJobs from './provider/ProviderJobs';
 import ShiftBoard from './caregiver/ShiftBoard';
 import FindCaregivers from './provider/FindCaregivers';
 import HomeProfile from './provider/HomeProfile';
@@ -62,6 +64,8 @@ export default function Home({ session }: Props) {
   // Messages the other person sent that this person has not opened yet.
   const [unread, setUnread] = useState<Unread[]>([]);
   const [thread, setThread] = useState<Thread | null>(null);
+  // Inside the Shifts tab: single shifts, or permanent jobs.
+  const [work, setWork] = useState<'shifts' | 'jobs'>('shifts');
   const [error, setError] = useState('');
   const [loaded, setLoaded] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -183,11 +187,29 @@ export default function Home({ session }: Props) {
           </p>
         )}
 
+        {tab === 'shifts' && (
+          <div className="segmented work-switch" role="group" aria-label="Shifts or jobs">
+            <button type="button" className={work === 'shifts' ? 'on' : ''} aria-pressed={work === 'shifts'} onClick={() => setWork('shifts')}>
+              Shifts
+            </button>
+            <button type="button" className={work === 'jobs' ? 'on' : ''} aria-pressed={work === 'jobs'} onClick={() => setWork('jobs')}>
+              Permanent jobs
+            </button>
+          </div>
+        )}
         {tab === 'shifts' &&
+          work === 'shifts' &&
           (isProvider ? (
             <ProviderShifts userId={userId} home={home} onOpenThread={openThread} onNeedHome={() => changeTab('home')} />
           ) : (
             <ShiftBoard userId={userId} onOpenThread={openThread} />
+          ))}
+        {tab === 'shifts' &&
+          work === 'jobs' &&
+          (isProvider ? (
+            <ProviderJobs userId={userId} home={home} onOpenThread={openThread} onNeedHome={() => changeTab('home')} />
+          ) : (
+            <JobBoard userId={userId} />
           ))}
         {tab === 'reports' && <Reports userId={userId} home={home} onNeedHome={() => changeTab('home')} />}
         {tab === 'availability' && <Availability userId={userId} />}

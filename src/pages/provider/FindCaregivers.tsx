@@ -146,7 +146,7 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
       setCredentials([]);
     } else {
       const [c, k, r] = await Promise.all([
-        supabase.from('caregiver_cards').select('id, first_name, surname_initial, looking_for').in('id', ids),
+        supabase.from('caregiver_cards').select('id, first_name, surname_initial, looking_for, open_to_permanent').in('id', ids),
         supabase.from('credentials').select('user_id, kind, status, expires_on').in('user_id', ids),
         supabase.from('rating_summary').select('ratee_id, average, total').in('ratee_id', ids),
       ]);
@@ -189,7 +189,7 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
       return;
     }
     const [c, k, r] = await Promise.all([
-      supabase.from('caregiver_cards').select('id, first_name, surname_initial, looking_for').in('id', ids),
+      supabase.from('caregiver_cards').select('id, first_name, surname_initial, looking_for, open_to_permanent').in('id', ids),
       supabase.from('credentials').select('user_id, kind, status, expires_on').in('user_id', ids),
       supabase.from('rating_summary').select('ratee_id, average, total').in('ratee_id', ids),
     ]);
@@ -277,6 +277,11 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
           {milesTo(card.id) != null && (
             <span className="chips">
               <span className="chip">{milesText(milesTo(card.id)!)}</span>
+            </span>
+          )}
+          {card.open_to_permanent && (
+            <span className="chips">
+              <span className="chip ok">Open to permanent work</span>
             </span>
           )}
           {card.looking_for && (
