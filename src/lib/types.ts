@@ -238,7 +238,7 @@ export interface Job {
   id: string;
   home_id: string;
   title: string;
-  kind: 'live_in' | 'live_out' | 'shifts';
+  kind: 'live_in' | 'live_out';
   schedule: string | null;
   pay_amount: number | string | null;
   pay_unit: 'hour' | 'day' | 'month';
@@ -263,7 +263,6 @@ export interface JobApplication {
 export const JOB_KINDS: { kind: Job['kind']; label: string }[] = [
   { kind: 'live_in', label: 'Live-in' },
   { kind: 'live_out', label: 'Live-out' },
-  { kind: 'shifts', label: 'Shifts' },
 ];
 
 export const jobKindLabel = (kind: string) => JOB_KINDS.find((k) => k.kind === kind)?.label ?? kind;

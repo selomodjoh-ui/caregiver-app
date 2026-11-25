@@ -213,7 +213,7 @@ export default function ProviderJobs({ userId, home, onOpenThread, onNeedHome }:
           </div>
           <div className="field">
             <span className="legend">Type of job</span>
-            <div className="segmented three" role="group" aria-label="Type of job">
+            <div className="segmented" role="group" aria-label="Type of job">
               {JOB_KINDS.map((k) => (
                 <button key={k.kind} type="button" className={kind === k.kind ? 'on' : ''} aria-pressed={kind === k.kind} onClick={() => setKind(k.kind)}>
                   {k.label}
