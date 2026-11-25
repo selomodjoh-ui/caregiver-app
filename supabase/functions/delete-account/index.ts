@@ -9,7 +9,14 @@ const SUPABASE_URL = env('SUPABASE_URL');
 const STRIPE_KEY = env('STRIPE_SECRET_KEY') || env('STRIPE_SECRET');
 const SERVICE_KEY = env('SUPABASE_SERVICE_ROLE_KEY') || env('SUPABASE_SECRET_KEY');
 const SITE_URL = env('SITE_URL') || 'https://getshiftkind.com';
-const ALLOWED_ORIGINS = [SITE_URL, 'https://www.getshiftkind.com', 'https://caregiver-app.selomodjoh.workers.dev'];
+// The last two are the Android and iPhone apps, which load from the phone itself.
+const ALLOWED_ORIGINS = [
+  SITE_URL,
+  'https://www.getshiftkind.com',
+  'https://caregiver-app.selomodjoh.workers.dev',
+  'https://localhost',
+  'capacitor://localhost',
+];
 
 function cors(req: Request) {
   const origin = req.headers.get('origin') ?? '';

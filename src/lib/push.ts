@@ -1,3 +1,4 @@
+import { isNativeApp } from './native';
 import { supabase } from './supabase';
 
 /** What this phone or browser can do about notifications right now. */
@@ -18,6 +19,8 @@ function supported(): boolean {
 }
 
 export async function pushState(): Promise<PushState> {
+  // The phone apps cannot use browser notifications; theirs arrive another way.
+  if (isNativeApp()) return 'unsupported';
   if (!supported()) return isIphone() && !isInstalled() ? 'needs-install' : 'unsupported';
   if (Notification.permission === 'denied') return 'blocked';
   try {

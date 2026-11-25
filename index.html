@@ -14,7 +14,7 @@
       // from a button or an email link, goes straight into the app.
       try {
         if (
-          location.pathname === '/' && !location.search && !location.hash &&
+          !window.Capacitor && location.pathname === '/' && !location.search && !location.hash &&
           !localStorage.getItem('sb-tnukrnluhjvalyrkslef-auth-token')
         ) location.replace('/welcome/');
       } catch (e) {}

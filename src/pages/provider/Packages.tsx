@@ -1,3 +1,4 @@
+import { isNativeApp } from '../../lib/native';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { formatDate, isHomeActive, type HomeInfo } from '../../lib/types';
@@ -87,6 +88,12 @@ export default function Packages({ home, onChanged }: Props) {
   /** Sends the home to Stripe: the payment page for a new subscription, or the page for managing one. */
   async function goToStripe(action: 'checkout' | 'portal', planId?: string) {
     if (!supabase) return;
+    // Plans are bought and managed on the website, not inside the phone apps.
+    if (isNativeApp()) {
+      setError('');
+      setNotice('To start or change your plan, open getshiftkind.com in your browser and sign in. Your plan then works here too.');
+      return;
+    }
     setBusy(true);
     setError('');
     setNotice('');

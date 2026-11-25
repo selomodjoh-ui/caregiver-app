@@ -11,7 +11,14 @@ const SERVICE_KEY = env('SUPABASE_SERVICE_ROLE_KEY') || env('SUPABASE_SECRET_KEY
 const RESEND_KEY = env('RESEND_API_KEY');
 const SITE_URL = env('SITE_URL') || 'https://getshiftkind.com';
 const FROM = env('NOTIFY_FROM') || 'ShiftKind <support@getshiftkind.com>';
-const ALLOWED_ORIGINS = [SITE_URL, 'https://www.getshiftkind.com', 'https://caregiver-app.selomodjoh.workers.dev'];
+// The last two are the Android and iPhone apps, which load from the phone itself.
+const ALLOWED_ORIGINS = [
+  SITE_URL,
+  'https://www.getshiftkind.com',
+  'https://caregiver-app.selomodjoh.workers.dev',
+  'https://localhost',
+  'capacitor://localhost',
+];
 const EMAIL_GAP_MINUTES = 15;
 
 function cors(req: Request) {
