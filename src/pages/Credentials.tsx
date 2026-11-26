@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import Skeleton from '../components/Skeleton';
 import { supabase } from '../lib/supabase';
 
 type Kind =
@@ -182,7 +183,7 @@ export default function Credentials({ userId }: Props) {
       )}
 
       {!loaded ? (
-        <p className="hint">Loading…</p>
+        <Skeleton rows={4} />
       ) : (
         <ul className="list">
           {KINDS.map(({ kind, label, hasNumber }, index) => {

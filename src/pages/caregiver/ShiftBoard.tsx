@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import Empty from '../../components/Empty';
+import Skeleton from '../../components/Skeleton';
 import { supabase } from '../../lib/supabase';
 import { AskRec, RecLine, RecList, type Rec, type RecSummary } from '../../components/Recommendations';
 import {
@@ -373,7 +375,7 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
     );
   }
 
-  if (!loaded) return <p className="hint">Loading…</p>;
+  if (!loaded) return <Skeleton rows={4} label="Loading shifts" />;
 
   const earned = (list: Shift[]) =>
     list.reduce((sum, s) => sum + (payForShift(s, hoursBetween(s.start_time, s.end_time)) ?? 0), 0);
@@ -529,7 +531,7 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
               </div>
             )}
             {open.length === 0 ? (
-              <p className="hint">Nothing matches. Choose "All" in both rows or clear the search to see every open shift.</p>
+              <Empty icon="search" title="No shifts match">Choose "All" in both rows or clear the search to see every open shift.</Empty>
             ) : view === 'list' ? (
               <ul className="list">{[...open.filter((s) => s.id === bestId), ...open.filter((s) => s.id !== bestId)].map((s) =>
                   card(s, s.id === bestId),

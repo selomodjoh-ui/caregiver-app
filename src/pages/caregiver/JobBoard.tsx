@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import Empty from '../../components/Empty';
+import Skeleton from '../../components/Skeleton';
 import Avatar from '../../components/Avatar';
 import { supabase } from '../../lib/supabase';
 import { milesBetween, milesText, pointOf, type Point } from '../../lib/geo';
@@ -205,7 +207,7 @@ export default function JobBoard({ userId }: Props) {
         </p>
       )}
       {!loaded ? (
-        <p className="hint">Loading…</p>
+        <Skeleton rows={3} label="Loading jobs" />
       ) : (
         <>
           {mine.length > 0 && (
@@ -226,7 +228,7 @@ export default function JobBoard({ userId }: Props) {
             ))}
           </div>
           {open.length === 0 ? (
-            <p className="hint">No open jobs right now. Homes post new ones here, so check back.</p>
+            <Empty icon="briefcase" title="No open jobs right now">Homes post new ones here. Turn on "open to a permanent job" on the Me tab and hiring homes can find you first.</Empty>
           ) : (
             <ul className="list">{open.map(card)}</ul>
           )}

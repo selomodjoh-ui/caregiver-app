@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Skeleton from '../../components/Skeleton';
 import { supabase } from '../../lib/supabase';
 import { DAYS, PARTS, dateKey, daysAheadText, dayOf, isFreeOn, parseDate, todayText, type DateChange, type Part } from '../../lib/types';
 
@@ -120,7 +121,7 @@ export default function Availability({ userId }: Props) {
       )}
 
       {!loaded ? (
-        <p className="hint">Loading…</p>
+        <Skeleton rows={3} />
       ) : (
         <>
           <h3 className="week-title">My usual week</h3>

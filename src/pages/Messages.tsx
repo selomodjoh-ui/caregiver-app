@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import Empty from '../components/Empty';
+import Skeleton from '../components/Skeleton';
 import { supabase, type Role } from '../lib/supabase';
 import { announce } from '../lib/push';
 import PushToggle from '../components/PushToggle';
@@ -188,13 +190,13 @@ function ThreadList({ userId, role, onOpenThread, unread }: Pick<Props, 'userId'
         </p>
       )}
       {!loaded ? (
-        <p className="hint">Loading…</p>
+        <Skeleton rows={3} label="Loading messages" />
       ) : threads.length === 0 ? (
-        <p className="hint">
+        <Empty icon="chat" title="No conversations yet">
           {role === 'caregiver'
-            ? 'No conversations yet. Apply for a shift and you can message the home.'
-            : 'No conversations yet. When someone applies, or you offer a shift, you can message them here.'}
-        </p>
+            ? 'Apply for a shift and you can message the home.'
+            : 'When someone applies, or you offer a shift, you can message them here.'}
+        </Empty>
       ) : (
         <ul className="list">
           {[...threads]

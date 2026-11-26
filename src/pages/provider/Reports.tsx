@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Skeleton from '../../components/Skeleton';
 import { supabase } from '../../lib/supabase';
 import {
   daysAgoText,
@@ -207,7 +208,7 @@ export default function Reports({ userId, home, onNeedHome }: Props) {
       )}
 
       {!loaded ? (
-        <p className="hint">Loading…</p>
+        <Skeleton rows={3} />
       ) : rows.length === 0 ? (
         <p className="hint">
           No caregivers were on your shifts between these dates. Accept an applicant and they will appear here.

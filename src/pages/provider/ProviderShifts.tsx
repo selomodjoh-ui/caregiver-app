@@ -1,4 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import Empty from '../../components/Empty';
+import Skeleton from '../../components/Skeleton';
 import { supabase } from '../../lib/supabase';
 import {
   CREDENTIAL_LABELS,
@@ -400,9 +402,9 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
       <section className="section">
         <h2>Your shifts</h2>
         {!loaded ? (
-          <p className="hint">Loading…</p>
+          <Skeleton rows={3} label="Loading shifts" />
         ) : visible.length === 0 ? (
-          <p className="hint">No upcoming shifts. Post one and caregivers who are free will see it.</p>
+          <Empty icon="calendar" title="No upcoming shifts">Post one above and caregivers who are free at that time will see it.</Empty>
         ) : (
           <ul className="list">
             {visible.map((shift) => {

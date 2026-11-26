@@ -18,6 +18,7 @@
   --error-bg: #fde8e4;
   --error-ink: #8a1c12;
   --shadow: 0 2px 12px rgba(20, 33, 61, 0.07);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --display: 'Plus Jakarta Sans', 'Figtree', system-ui, sans-serif;
   --body: 'Figtree', system-ui, sans-serif;
 }
@@ -39,6 +40,7 @@ body {
   max-width: 480px;
   margin: 0 auto;
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--ground);
 }
 
@@ -292,7 +294,7 @@ h2 {
   font: 700 17px var(--body);
   cursor: pointer;
   box-shadow: 0 6px 16px rgba(29, 58, 110, 0.24);
-  transition: transform 0.08s, box-shadow 0.08s, background-color 0.15s;
+  transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease), background-color 0.15s;
 }
 
 .btn:hover {
@@ -300,7 +302,7 @@ h2 {
 }
 
 .btn:active {
-  transform: translateY(1px);
+  transform: translateY(1px) scale(0.985);
   box-shadow: 0 2px 6px rgba(29, 58, 110, 0.2);
 }
 
@@ -542,7 +544,7 @@ a:focus-visible {
 
 .form.inset {
   padding: 4px 14px 18px;
-  animation: reveal 0.2s ease-out;
+  animation: reveal 0.28s var(--ease);
 }
 
 .toast {
@@ -558,7 +560,7 @@ a:focus-visible {
   display: flex;
   align-items: center;
   gap: 8px;
-  animation: rise 0.25s ease-out;
+  animation: rise 0.3s var(--ease);
 }
 
 @keyframes pop {
@@ -590,6 +592,132 @@ a:focus-visible {
     opacity: 1;
     transform: translate(-50%, 0);
   }
+}
+
+/* Lists arrive one row after another, the first eight only. */
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.list > li {
+  animation: settle 0.42s var(--ease) backwards;
+}
+
+.list > li:nth-child(2) { animation-delay: 45ms; }
+.list > li:nth-child(3) { animation-delay: 90ms; }
+.list > li:nth-child(4) { animation-delay: 135ms; }
+.list > li:nth-child(5) { animation-delay: 180ms; }
+.list > li:nth-child(6) { animation-delay: 225ms; }
+.list > li:nth-child(7) { animation-delay: 270ms; }
+.list > li:nth-child(n + 8) { animation-delay: 315ms; }
+
+/* ---------- Loading placeholders ---------- */
+
+@keyframes shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.skeleton-row {
+  position: relative;
+  overflow: hidden;
+  min-height: 72px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: 20px;
+}
+
+.skeleton-row::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(226, 233, 245, 0.75), transparent);
+  animation: shimmer 1.3s ease-in-out infinite;
+}
+
+.skeleton-dot {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--peri);
+}
+
+.skeleton-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.skeleton-line {
+  height: 13px;
+  border-radius: 7px;
+  background: var(--peri);
+}
+
+.skeleton-line.short {
+  height: 10px;
+  opacity: 0.7;
+}
+
+/* ---------- Empty lists ---------- */
+
+.empty {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 20px 18px;
+  border: 1.5px dashed #c5d1e6;
+  border-radius: 20px;
+  animation: settle 0.42s var(--ease) backwards;
+}
+
+.empty-icon {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--peri);
+  color: var(--berry);
+}
+
+.empty-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.empty-text strong {
+  font: 700 17px var(--display);
+  color: var(--ink);
 }
 
 @media (prefers-reduced-motion: reduce) {

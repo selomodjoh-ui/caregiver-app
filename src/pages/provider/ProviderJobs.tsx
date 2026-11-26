@@ -1,4 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import Empty from '../../components/Empty';
+import Skeleton from '../../components/Skeleton';
 import CaregiverSummary from './CaregiverSummary';
 import { supabase } from '../../lib/supabase';
 import type { RecSummary } from '../../components/Recommendations';
@@ -276,12 +278,12 @@ export default function ProviderJobs({ userId, home, onOpenThread, onNeedHome }:
       )}
 
       {!loaded ? (
-        <p className="hint">Loading…</p>
+        <Skeleton rows={2} label="Loading jobs" />
       ) : (
         <>
           <h3 className="week-title">Your jobs</h3>
           {jobs.length === 0 ? (
-            <p className="hint">You have not posted a job yet.</p>
+            <Empty icon="briefcase" title="No jobs posted yet">Post one above. Caregivers looking for a live-in or live-out job apply to you directly.</Empty>
           ) : (
             <ul className="list">
               {jobs.map((job) => {
