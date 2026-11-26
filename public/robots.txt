@@ -1,0 +1,5 @@
+# Everything public may be crawled. The app itself lives at / and is canonicalised to /welcome/.
+User-agent: *
+Allow: /
+
+Sitemap: https://getshiftkind.com/sitemap.xml

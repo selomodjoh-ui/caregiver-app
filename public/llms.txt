@@ -1,0 +1,14 @@
+# ShiftKind
+
+> ShiftKind is a job board for Washington State that connects licensed caregivers (HCA, CNA) with adult family homes that need shifts covered. Homes post shifts and live-in or live-out jobs; caregivers mark their free days and nights, keep their credentials in one place, and apply. Homes hire and pay caregivers directly.
+
+- Caregivers never pay.
+- Adult family homes start with 14 days free, then a monthly package (Standard or Plus).
+- Credentials are checked by a person at ShiftKind; homes still run the state background check.
+- Contact: support@getshiftkind.com, +1 (347) 567-6442
+
+## Pages
+
+- [About ShiftKind](https://getshiftkind.com/welcome/): how a shift gets filled, features for caregivers and homes, pricing summary
+- [Privacy policy](https://getshiftkind.com/privacy/)
+- [Terms of use](https://getshiftkind.com/terms/)
