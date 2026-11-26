@@ -171,7 +171,7 @@ chip("s1meet", "Lydia wants a steady job", 1250, 0.3, T[1], EM, "#ffffff", 58, "
 chip("s1role", "Caregiver, Washington State", 1375, 0.9, T[1], CREAM, EM, 38, w=640, h=84, dy=30)
 # 2 agents in the group chats
 full("s2", "a1", T[1], T[2])
-chip("s2a", "Posted in a group chat", 300, T[1] + 0.3, T[2], NIGHT, "#ffffff", 44, "bold", w=640, h=100)
+chip("s2a", "Posted in a group chat", 1350, T[1] + 0.3, T[2], NIGHT, "#ffffff", 44, "bold", w=640, h=100)
 full("s3", "a2", T[2], T[3])
 chip("s3fee", "\"Pay my fee first\"", 1370, T[2] + 0.3, T[3], "#fffdf5", RED, 50, "bold", w=620, h=110, dy=30, pop=1.4)
 # 3 Miss Dona needs someone who stays
