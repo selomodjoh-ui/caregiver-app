@@ -2141,7 +2141,7 @@ revoke execute on function public.admin_close_report(uuid, boolean) from public,
 grant execute on function public.admin_trust() to authenticated;
 grant execute on function public.admin_close_report(uuid, boolean) to authenticated;
 
--- ===== 0027_shift_types.sql =====
+-- ===== 0028_shift_types.sql =====
 -- Caregivers pick the kinds of work they would take: day shift, night shift,
 -- live-in, live-out, reliever, on-call. Homes see the picks on the caregiver's card.
 -- Choosing live-in or live-out is what marks someone as open to a permanent job.
