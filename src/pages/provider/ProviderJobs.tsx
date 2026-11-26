@@ -11,6 +11,7 @@ import {
   formatDate,
   jobKindLabel,
   jobPayText,
+  shiftTypeLabels,
   todayText,
   type CaregiverCard,
   type CredentialSummary,
@@ -64,7 +65,7 @@ export default function ProviderJobs({ userId, home, onOpenThread, onNeedHome }:
       supabase.from('recommendation_summary').select('subject_id, total'),
       supabase
         .from('caregiver_cards')
-        .select('id, first_name, surname_initial, looking_for, open_to_permanent')
+        .select('id, first_name, surname_initial, looking_for, open_to_permanent, shift_types')
         .eq('open_to_permanent', true)
         .limit(30),
     ]);
@@ -390,6 +391,15 @@ export default function ProviderJobs({ userId, home, onOpenThread, onNeedHome }:
                     credentials={credentials.filter((c) => c.user_id === s.id)}
                     recs={summaries.find((x) => x.subject_id === s.id)?.total}
                   />
+                  {shiftTypeLabels(s.shift_types).length > 0 && (
+                    <span className="chips" aria-label="Work they would take">
+                      {shiftTypeLabels(s.shift_types).map((label) => (
+                        <span key={label} className="chip ok">
+                          {label}
+                        </span>
+                      ))}
+                    </span>
+                  )}
                   {s.looking_for && <p className="quote">Looking for: {s.looking_for}</p>}
                   <div className="actions">
                     <button type="button" className="btn small" onClick={() => message(s, s.id)}>

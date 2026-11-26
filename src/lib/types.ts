@@ -88,6 +88,24 @@ export interface CaregiverCard {
   looking_for?: string | null;
   /** True when the caregiver says they would take a permanent or long-term job. */
   open_to_permanent?: boolean | null;
+  /** The kinds of work the caregiver would take; see SHIFT_TYPES. */
+  shift_types?: string[] | null;
+}
+
+/** The kinds of work a caregiver can say they would take, in the order they are shown. */
+export const SHIFT_TYPES = [
+  { id: 'day', label: 'Day shift', hint: 'Daytime shifts' },
+  { id: 'night', label: 'Night shift', hint: 'Overnight shifts' },
+  { id: 'live_in', label: 'Live-in', hint: 'A permanent job, staying in the home' },
+  { id: 'live_out', label: 'Live-out', hint: 'A permanent job, going home after work' },
+  { id: 'reliever', label: 'Reliever', hint: 'Covering while the regular caregiver is away' },
+  { id: 'on_call', label: 'On-call', hint: 'Shifts at short notice' },
+] as const;
+
+/** The labels for a caregiver's picks, in display order; unknown values are left out. */
+export function shiftTypeLabels(picked: string[] | null | undefined): string[] {
+  if (!picked || picked.length === 0) return [];
+  return SHIFT_TYPES.filter((t) => picked.includes(t.id)).map((t) => t.label);
 }
 
 export interface CredentialSummary {

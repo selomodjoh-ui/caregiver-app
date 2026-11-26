@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { SHIFT_TYPES } from '../lib/types';
 
 const LIMIT = 300;
 
@@ -10,17 +11,18 @@ export default function LookingFor({ userId }: { userId: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
-  const [permanent, setPermanent] = useState(false);
+  const [types, setTypes] = useState<string[]>([]);
 
-  /** Saves straight away, and puts the switch back if saving fails. */
-  async function togglePermanent() {
+  /** Saves straight away, and puts the choice back if saving fails. */
+  async function toggleType(id: string) {
     if (!supabase) return;
-    const next = !permanent;
-    setPermanent(next);
+    const before = types;
+    const next = before.includes(id) ? before.filter((t) => t !== id) : [...before, id];
+    setTypes(next);
     setError('');
-    const { error: err } = await supabase.from('profiles').update({ open_to_permanent: next }).eq('id', userId);
+    const { error: err } = await supabase.from('profiles').update({ shift_types: next }).eq('id', userId);
     if (err) {
-      setPermanent(!next);
+      setTypes(before);
       setError('We could not save that. Please try again.');
     }
   }
@@ -29,14 +31,14 @@ export default function LookingFor({ userId }: { userId: string }) {
     if (!supabase) return;
     supabase
       .from('profiles')
-      .select('looking_for, open_to_permanent')
+      .select('looking_for, shift_types')
       .eq('id', userId)
       .maybeSingle()
       .then(({ data }) => {
         const text = (data as { looking_for?: string | null } | null)?.looking_for ?? '';
         setSaved(text);
         setDraft(text);
-        setPermanent((data as { open_to_permanent?: boolean | null } | null)?.open_to_permanent === true);
+        setTypes((data as { shift_types?: string[] | null } | null)?.shift_types ?? []);
       });
   }, [userId]);
 
@@ -64,13 +66,28 @@ export default function LookingFor({ userId }: { userId: string }) {
         Tell homes what suits you, such as nights only, weekends, or regular shifts with one home. They see this
         note when they look for caregivers.
       </p>
-      <label className="switch-row">
-        <input type="checkbox" checked={permanent} onChange={togglePermanent} />
-        <span>
-          <strong>I'm open to a permanent or long-term job</strong>
-          <span className="hint">Homes that are hiring can find you and message you.</span>
-        </span>
-      </label>
+      <div className="shift-types">
+        <h3 id="shift-types-title">Shift types</h3>
+        <p className="hint">
+          Tap every kind of work you would take now. Each tap saves by itself, and you can change them any time.
+        </p>
+        <div className="type-grid" role="group" aria-labelledby="shift-types-title">
+          {SHIFT_TYPES.map((t) => {
+            const on = types.includes(t.id);
+            return (
+              <button key={t.id} type="button" className={`type-pick ${on ? 'on' : ''}`} aria-pressed={on} onClick={() => toggleType(t.id)}>
+                <strong>{t.label}</strong>
+                <span>{t.hint}</span>
+              </button>
+            );
+          })}
+        </div>
+        {(types.includes('live_in') || types.includes('live_out')) && (
+          <p className="hint" role="status">
+            Homes hiring for a permanent job can now find you and message you.
+          </p>
+        )}
+      </div>
       <div className="field">
         <label htmlFor="looking-for">My note to homes</label>
         <textarea

@@ -10,6 +10,7 @@ import {
   isHomeActive,
   partOf,
   shiftTitle,
+  shiftTypeLabels,
   todayText,
   type Application,
   type CaregiverCard,
@@ -146,7 +147,7 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
       setCredentials([]);
     } else {
       const [c, k, r] = await Promise.all([
-        supabase.from('caregiver_cards').select('id, first_name, surname_initial, looking_for, open_to_permanent').in('id', ids),
+        supabase.from('caregiver_cards').select('id, first_name, surname_initial, looking_for, open_to_permanent, shift_types').in('id', ids),
         supabase.from('credentials').select('user_id, kind, status, expires_on').in('user_id', ids),
         supabase.from('recommendation_summary').select('subject_id, total').in('subject_id', ids),
       ]);
@@ -189,7 +190,7 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
       return;
     }
     const [c, k, r] = await Promise.all([
-      supabase.from('caregiver_cards').select('id, first_name, surname_initial, looking_for, open_to_permanent').in('id', ids),
+      supabase.from('caregiver_cards').select('id, first_name, surname_initial, looking_for, open_to_permanent, shift_types').in('id', ids),
       supabase.from('credentials').select('user_id, kind, status, expires_on').in('user_id', ids),
       supabase.from('recommendation_summary').select('subject_id, total').in('subject_id', ids),
     ]);
@@ -279,9 +280,13 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
               <span className="chip">{milesText(milesTo(card.id)!)}</span>
             </span>
           )}
-          {card.open_to_permanent && (
-            <span className="chips">
-              <span className="chip ok">Open to permanent work</span>
+          {shiftTypeLabels(card.shift_types).length > 0 && (
+            <span className="chips" aria-label="Work they would take">
+              {shiftTypeLabels(card.shift_types).map((label) => (
+                <span key={label} className="chip ok">
+                  {label}
+                </span>
+              ))}
             </span>
           )}
           {card.looking_for && (

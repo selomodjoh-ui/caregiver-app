@@ -2309,6 +2309,63 @@ body.wide .band-lead {
   color: #ffffff;
 }
 
+.shift-types {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.shift-types h3 {
+  margin: 0;
+}
+
+.type-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.type-pick {
+  min-height: 72px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+  font: inherit;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1.5px solid var(--field-line);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, transform 0.18s var(--ease);
+}
+
+.type-pick strong {
+  font: 700 16px var(--display);
+}
+
+.type-pick span {
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+.type-pick:active {
+  transform: scale(0.985);
+}
+
+.type-pick.on {
+  background: var(--berry);
+  border-color: var(--berry);
+  color: #ffffff;
+}
+
+.type-pick.on span {
+  color: #d5def0;
+}
+
 .switch-row {
   display: flex;
   align-items: flex-start;
