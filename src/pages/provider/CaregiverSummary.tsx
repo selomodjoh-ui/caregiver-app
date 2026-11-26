@@ -1,5 +1,5 @@
 import Avatar from '../../components/Avatar';
-import { RatingLine, type RatingSummary } from '../../components/Rating';
+import { RecList } from '../../components/Recommendations';
 import { CREDENTIAL_LABELS, isCurrent, type CaregiverCard, type CredentialSummary } from '../../lib/types';
 
 interface Props {
@@ -7,11 +7,12 @@ interface Props {
   credentials: CredentialSummary[];
   /** When given, shows how many of these the caregiver holds. */
   required?: string[];
-  rating?: RatingSummary;
+  /** How many recommendations this caregiver shows on their profile. */
+  recs?: number;
 }
 
 /** A caregiver's name and the credentials they hold, as a provider sees them. */
-export default function CaregiverSummary({ card, credentials, required, rating }: Props) {
+export default function CaregiverSummary({ card, credentials, required, recs }: Props) {
   const current = credentials.filter((c) => isCurrent(c));
   const missing = (required ?? []).filter((kind) => !current.some((c) => c.kind === kind));
 
@@ -20,7 +21,7 @@ export default function CaregiverSummary({ card, credentials, required, rating }
       <Avatar userId={card?.id} name={card?.first_name} />
       <div className="list-main">
         <span className="list-title">{card ? `${card.first_name} ${card.surname_initial}.` : 'Caregiver'}</span>
-        <RatingLine summary={rating} />
+        <RecList subjectId={card?.id} total={recs} />
         <span className="chips">
           {current.length === 0 && <span className="chip">No credentials added yet</span>}
           {current.map((c) => (

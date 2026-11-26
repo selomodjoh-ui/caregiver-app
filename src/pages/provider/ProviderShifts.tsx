@@ -20,7 +20,7 @@ import {
 import CaregiverSummary from './CaregiverSummary';
 import CredentialReport from './CredentialReport';
 import Suggestions from './Suggestions';
-import { RatingForm, type RatingSummary } from '../../components/Rating';
+import { AskRec, type Rec, type RecSummary } from '../../components/Recommendations';
 
 interface Props {
   userId: string;
@@ -57,8 +57,8 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
   const [applications, setApplications] = useState<Application[]>([]);
   const [cards, setCards] = useState<CaregiverCard[]>([]);
   const [credentials, setCredentials] = useState<CredentialSummary[]>([]);
-  const [summaries, setSummaries] = useState<RatingSummary[]>([]);
-  const [rated, setRated] = useState<Set<string>>(new Set());
+  const [summaries, setSummaries] = useState<RecSummary[]>([]);
+  const [myRecs, setMyRecs] = useState<Pick<Rec, 'author_id' | 'status'>[]>([]);
   const [report, setReport] = useState<{ app: Application; shift: Shift } | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [posting, setPosting] = useState(false);
@@ -80,11 +80,11 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
       .order('start_time');
     if (s.error) setError(s.error.message);
     const [r, g] = await Promise.all([
-      supabase.from('rating_summary').select('ratee_id, average, total'),
-      supabase.from('ratings').select('shift_id, ratee_id').eq('rater_id', userId),
+      supabase.from('recommendation_summary').select('subject_id, total'),
+      supabase.from('recommendations').select('author_id, status').eq('subject_id', userId),
     ]);
-    setSummaries((r.data ?? []) as RatingSummary[]);
-    setRated(new Set((g.data ?? []).map((x) => `${x.shift_id}:${x.ratee_id}`)));
+    setSummaries((r.data ?? []) as RecSummary[]);
+    setMyRecs((g.data ?? []) as Pick<Rec, 'author_id' | 'status'>[]);
     const list = (s.data ?? []) as Shift[];
     setShifts(list);
 
@@ -456,7 +456,7 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
                             card={card}
                             credentials={credentials.filter((c) => c.user_id === app.caregiver_id)}
                             required={shift.requirements}
-                            rating={summaries.find((x) => x.ratee_id === app.caregiver_id)}
+                            recs={summaries.find((x) => x.subject_id === app.caregiver_id)?.total}
                           />
                           <span className={`chip ${app.status === 'accepted' ? 'ok' : app.status === 'declined' ? 'bad' : ''}`}>
                             {STATUS_TEXT[app.status]}
@@ -501,18 +501,15 @@ export default function ProviderShifts({ userId, home, onOpenThread, onNeedHome 
                               <p className="hint">Printable credential reports come with the Plus package.</p>
                             ))}
                           {app.status === 'accepted' &&
-                            shift.shift_date <= today &&
-                            (rated.has(`${shift.id}:${app.caregiver_id}`) ? (
-                              <p className="hint">You rated this caregiver. Thank you.</p>
-                            ) : (
-                              <RatingForm
-                                shiftId={shift.id}
-                                raterId={userId}
-                                rateeId={app.caregiver_id}
+                            shift.shift_date <= today && (
+                              <AskRec
+                                userId={userId}
+                                otherId={app.caregiver_id}
                                 name={card ? card.first_name : 'this caregiver'}
+                                mine={myRecs}
                                 onDone={load}
                               />
-                            ))}
+                            )}
                         </div>
                       );
                     })}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { RatingForm, RatingLine, type RatingSummary } from '../../components/Rating';
+import { AskRec, RecLine, RecList, type Rec, type RecSummary } from '../../components/Recommendations';
 import {
   CREDENTIAL_LABELS,
   careMix,
@@ -47,8 +47,8 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
   const [free, setFree] = useState<Set<string>>(new Set());
   const [changes, setChanges] = useState<Map<string, boolean>>(new Map());
   const [credentials, setCredentials] = useState<MyCredential[]>([]);
-  const [summaries, setSummaries] = useState<RatingSummary[]>([]);
-  const [rated, setRated] = useState<Set<string>>(new Set());
+  const [summaries, setSummaries] = useState<RecSummary[]>([]);
+  const [myRecs, setMyRecs] = useState<Pick<Rec, 'author_id' | 'status'>[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -87,8 +87,8 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
       supabase.from('availability').select('day, part').eq('user_id', userId),
       supabase.from('availability_dates').select('on_date, part, free').eq('user_id', userId).gte('on_date', todayText()),
       supabase.from('credentials').select('kind, expires_on').eq('user_id', userId),
-      supabase.from('rating_summary').select('ratee_id, average, total'),
-      supabase.from('ratings').select('shift_id').eq('rater_id', userId),
+      supabase.from('recommendation_summary').select('subject_id, total'),
+      supabase.from('recommendations').select('author_id, status').eq('subject_id', userId),
     ]);
     const firstError = s.error ?? a.error ?? f.error ?? c.error;
     if (firstError) setError(firstError.message);
@@ -98,8 +98,8 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
     // One-off date changes. Missing until the database step is run; the usual week still works.
     setChanges(new Map(((fd.data ?? []) as DateChange[]).map((x) => [dateKey(x.on_date, x.part), x.free])));
     setCredentials((c.data ?? []) as MyCredential[]);
-    setSummaries((r.data ?? []) as RatingSummary[]);
-    setRated(new Set((g.data ?? []).map((x) => x.shift_id as string)));
+    setSummaries((r.data ?? []) as RecSummary[]);
+    setMyRecs((g.data ?? []) as Pick<Rec, 'author_id' | 'status'>[]);
     setLoaded(true);
   }
 
@@ -271,7 +271,7 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
             <span className={isBest ? 'list-title' : 'hint'}>{home?.name ?? 'Adult family home'}</span>
           </span>
           {isMine && total != null && <span className="earn">You earn {money(total)}</span>}
-          <RatingLine summary={summaries.find((x) => x.ratee_id === shift.home_id)} />
+          <RecLine total={summaries.find((x) => x.subject_id === shift.home_id)?.total} />
           <span className="chips">
             {app?.status === 'accepted' && <span className="chip ok">Yours</span>}
             {app?.status === 'applied' && <span className="chip">Applied</span>}
@@ -304,6 +304,7 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
               </p>
             )}
             {home?.description && <p className="hint">{home.description}</p>}
+            <RecList subjectId={shift.home_id} total={summaries.find((x) => x.subject_id === shift.home_id)?.total} />
             {shift.preferred_sex && (
               <p className="quote">
                 <strong>The home asks for a {shift.preferred_sex} caregiver for this shift.</strong> Reason given:{' '}
@@ -331,18 +332,15 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
             )}
 
             {app?.status === 'accepted' &&
-              shift.shift_date <= today &&
-              (rated.has(shift.id) ? (
-                <p className="hint">You rated this home. Thank you.</p>
-              ) : (
-                <RatingForm
-                  shiftId={shift.id}
-                  raterId={userId}
-                  rateeId={shift.home_id}
+              shift.shift_date <= today && (
+                <AskRec
+                  userId={userId}
+                  otherId={shift.home_id}
                   name={home?.name ?? 'this home'}
+                  mine={myRecs}
                   onDone={load}
                 />
-              ))}
+              )}
 
             {app?.status === 'offered' && (
               <div className="row">
@@ -429,7 +427,7 @@ export default function ShiftBoard({ userId, onOpenThread }: Props) {
       {past.length > 0 && (
         <section className="section">
           <h2>Past shifts</h2>
-          <p className="hint">Open one to rate the home.</p>
+          <p className="hint">Open one to ask the home for a recommendation.</p>
           <ul className="list">{past.map((s) => card(s))}</ul>
         </section>
       )}

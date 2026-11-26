@@ -4,7 +4,8 @@ import { messageOf, supabase, withTimeout, type Profile } from '../lib/supabase'
 import type { HomeInfo, Thread } from '../lib/types';
 import Band from '../components/Band';
 import PhotoPicker from '../components/PhotoPicker';
-import MyRatings from '../components/MyRatings';
+import MyRecommendations from '../components/MyRecommendations';
+import ReportProblem from '../components/ReportProblem';
 import MyArea from '../components/MyArea';
 import LookingFor from '../components/LookingFor';
 import TabBar, { icons, type Tab } from '../components/TabBar';
@@ -237,9 +238,10 @@ export default function Home({ session }: Props) {
         {tab === 'account' && (
           <PhotoPicker userId={userId} name={profile.first_name} isProvider={isProvider} />
         )}
-        {tab === 'account' && <MyRatings userId={userId} />}
+        {tab === 'account' && <MyRecommendations userId={userId} isProvider={isProvider} />}
         {tab === 'account' && !isProvider && <LookingFor userId={userId} />}
         {tab === 'account' && !isProvider && <MyArea userId={userId} />}
+        {tab === 'account' && <ReportProblem userId={userId} />}
         {tab === 'account' && (
           <section className="section">
             <h2>Your details</h2>

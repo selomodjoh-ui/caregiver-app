@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import CaregiverSummary from './CaregiverSummary';
 import { supabase } from '../../lib/supabase';
-import type { RatingSummary } from '../../components/Rating';
+import type { RecSummary } from '../../components/Recommendations';
 import {
   CREDENTIAL_LABELS,
   JOB_KINDS,
@@ -39,7 +39,7 @@ export default function ProviderJobs({ userId, home, onOpenThread, onNeedHome }:
   const [apps, setApps] = useState<JobApplication[]>([]);
   const [cards, setCards] = useState<CaregiverCard[]>([]);
   const [credentials, setCredentials] = useState<CredentialSummary[]>([]);
-  const [summaries, setSummaries] = useState<RatingSummary[]>([]);
+  const [summaries, setSummaries] = useState<RecSummary[]>([]);
   const [seekers, setSeekers] = useState<CaregiverCard[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [posting, setPosting] = useState(false);
@@ -59,7 +59,7 @@ export default function ProviderJobs({ userId, home, onOpenThread, onNeedHome }:
     if (!supabase) return;
     const [j, r, s] = await Promise.all([
       supabase.from('jobs').select('*').eq('home_id', userId).order('created_at', { ascending: false }),
-      supabase.from('rating_summary').select('ratee_id, average, total'),
+      supabase.from('recommendation_summary').select('subject_id, total'),
       supabase
         .from('caregiver_cards')
         .select('id, first_name, surname_initial, looking_for, open_to_permanent')
@@ -69,7 +69,7 @@ export default function ProviderJobs({ userId, home, onOpenThread, onNeedHome }:
     if (j.error) setError('Jobs are not available yet. Please try again shortly.');
     const list = (j.data ?? []) as Job[];
     setJobs(list);
-    setSummaries((r.data ?? []) as RatingSummary[]);
+    setSummaries((r.data ?? []) as RecSummary[]);
     const open = (s.data ?? []) as CaregiverCard[];
     setSeekers(open);
 
@@ -339,7 +339,7 @@ export default function ProviderJobs({ userId, home, onOpenThread, onNeedHome }:
                                 card={card}
                                 credentials={credentials.filter((c) => c.user_id === app.caregiver_id)}
                                 required={job.requirements}
-                                rating={summaries.find((x) => x.ratee_id === app.caregiver_id)}
+                                recs={summaries.find((x) => x.subject_id === app.caregiver_id)?.total}
                               />
                               {app.note && <p className="quote">“{app.note}”</p>}
                               <span className={`chip ${app.status === 'hired' || app.status === 'shortlisted' ? 'ok' : app.status === 'declined' ? 'bad' : ''}`}>
@@ -386,7 +386,7 @@ export default function ProviderJobs({ userId, home, onOpenThread, onNeedHome }:
                   <CaregiverSummary
                     card={s}
                     credentials={credentials.filter((c) => c.user_id === s.id)}
-                    rating={summaries.find((x) => x.ratee_id === s.id)}
+                    recs={summaries.find((x) => x.subject_id === s.id)?.total}
                   />
                   {s.looking_for && <p className="quote">Looking for: {s.looking_for}</p>}
                   <div className="actions">

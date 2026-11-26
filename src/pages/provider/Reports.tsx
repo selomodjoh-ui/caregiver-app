@@ -25,7 +25,6 @@ interface Row {
   name: string;
   hours: number;
   pay: number | null;
-  stars: number | null;
 }
 
 const money = (n: number) => `$${n.toFixed(2)}`;
@@ -66,14 +65,10 @@ export default function Reports({ userId, home, onNeedHome }: Props) {
         .eq('status', 'accepted');
       const apps = (a.data ?? []) as Application[];
       const people = [...new Set(apps.map((x) => x.caregiver_id))];
-      const [c, r] = await Promise.all([
-        people.length
-          ? supabase.from('caregiver_cards').select('id, first_name, surname_initial').in('id', people)
-          : Promise.resolve({ data: [] }),
-        supabase.from('ratings').select('shift_id, ratee_id, stars').eq('rater_id', userId).in('shift_id', ids),
-      ]);
+      const c = people.length
+        ? await supabase.from('caregiver_cards').select('id, first_name, surname_initial').in('id', people)
+        : { data: [] };
       const cards = (c.data ?? []) as CaregiverCard[];
-      const ratings = (r.data ?? []) as { shift_id: string; ratee_id: string; stars: number }[];
 
       setRows(
         apps
@@ -87,8 +82,6 @@ export default function Reports({ userId, home, onNeedHome }: Props) {
               name: card ? `${card.first_name} ${card.surname_initial}.` : 'Caregiver',
               hours,
               pay: payForShift(shift, hours),
-              stars:
-                ratings.find((x) => x.shift_id === shift.id && x.ratee_id === app.caregiver_id)?.stars ?? null,
             };
           })
           .sort(
@@ -121,14 +114,12 @@ export default function Reports({ userId, home, onNeedHome }: Props) {
   const byPerson = [...new Set(rows.map((r) => r.caregiverId))]
     .map((id) => {
       const mine = rows.filter((r) => r.caregiverId === id);
-      const rated = mine.filter((r) => r.stars != null);
       return {
         id,
         name: mine[0].name,
         shifts: mine.length,
         hours: mine.reduce((sum, r) => sum + r.hours, 0),
         pay: mine.some((r) => r.pay != null) ? mine.reduce((sum, r) => sum + (r.pay ?? 0), 0) : null,
-        rating: rated.length ? rated.reduce((sum, r) => sum + (r.stars ?? 0), 0) / rated.length : null,
       };
     })
     .sort((x, y) => y.hours - x.hours);
@@ -139,7 +130,7 @@ export default function Reports({ userId, home, onNeedHome }: Props) {
   function downloadCsv() {
     const quote = (v: string) => `"${v.replace(/"/g, '""')}"`;
     const lines = [
-      ['Date', 'Start', 'End', 'Caregiver', 'Hours', 'Pay rate (USD)', 'Paid per', 'Estimated pay (USD)', 'Your rating'],
+      ['Date', 'Start', 'End', 'Caregiver', 'Hours', 'Pay rate (USD)', 'Paid per', 'Estimated pay (USD)'],
       ...rows.map((r) => [
         r.shift.shift_date,
         r.shift.start_time.slice(0, 5),
@@ -149,7 +140,6 @@ export default function Reports({ userId, home, onNeedHome }: Props) {
         r.shift.pay_rate != null ? Number(r.shift.pay_rate).toFixed(2) : '',
         r.shift.pay_rate != null ? r.shift.pay_type : '',
         r.pay != null ? r.pay.toFixed(2) : '',
-        r.stars != null ? String(r.stars) : '',
       ]),
     ];
     const csv = lines.map((line) => line.map(quote).join(',')).join('\r\n');
@@ -252,7 +242,6 @@ export default function Reports({ userId, home, onNeedHome }: Props) {
                   <th scope="col">Shifts</th>
                   <th scope="col">Hours</th>
                   <th scope="col">Est. pay</th>
-                  <th scope="col">Your rating</th>
                 </tr>
               </thead>
               <tbody>
@@ -262,7 +251,6 @@ export default function Reports({ userId, home, onNeedHome }: Props) {
                     <td>{p.shifts}</td>
                     <td>{hoursText(p.hours)}</td>
                     <td>{p.pay != null ? money(p.pay) : 'Not set'}</td>
-                    <td>{p.rating != null ? `${p.rating.toFixed(1)} of 5` : 'Not rated'}</td>
                   </tr>
                 ))}
               </tbody>

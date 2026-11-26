@@ -39,7 +39,7 @@ export default function DeleteAccount({ isProvider }: { isProvider: boolean }) {
       <h3 id="delete-account-title">Delete my account</h3>
       <p>
         This removes your profile, {isProvider ? 'your home, your shifts' : 'your credentials, your applications'}, your
-        messages and your ratings. {isProvider ? 'Any card subscription is stopped. ' : ''}It cannot be undone.
+        messages and your recommendations. {isProvider ? 'Any card subscription is stopped. ' : ''}It cannot be undone.
       </p>
       <div className="field">
         <label htmlFor="delete-word">Type DELETE to confirm</label>

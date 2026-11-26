@@ -22,7 +22,7 @@ import {
 import CaregiverSummary from './CaregiverSummary';
 import MapView, { type Pin } from '../../components/MapView';
 import { milesBetween, milesText, pointOf, type Point } from '../../lib/geo';
-import type { RatingSummary } from '../../components/Rating';
+import type { RecSummary } from '../../components/Recommendations';
 
 interface Props {
   userId: string;
@@ -76,7 +76,7 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
   const [credentials, setCredentials] = useState<CredentialSummary[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
-  const [summaries, setSummaries] = useState<RatingSummary[]>([]);
+  const [summaries, setSummaries] = useState<RecSummary[]>([]);
   const [shiftId, setShiftId] = useState('');
   const [more, setMore] = useState<{ card: CaregiverCard; slots: string[] }[] | null>(null);
   const [searched, setSearched] = useState(false);
@@ -148,9 +148,9 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
       const [c, k, r] = await Promise.all([
         supabase.from('caregiver_cards').select('id, first_name, surname_initial, looking_for, open_to_permanent').in('id', ids),
         supabase.from('credentials').select('user_id, kind, status, expires_on').in('user_id', ids),
-        supabase.from('rating_summary').select('ratee_id, average, total').in('ratee_id', ids),
+        supabase.from('recommendation_summary').select('subject_id, total').in('subject_id', ids),
       ]);
-      setSummaries((r.data ?? []) as RatingSummary[]);
+      setSummaries((r.data ?? []) as RecSummary[]);
       if (c.error) setError(c.error.message);
       const found = (c.data ?? []) as CaregiverCard[];
       setCards(ids.map((id) => found.find((x) => x.id === id)).filter((x): x is CaregiverCard => !!x));
@@ -191,11 +191,11 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
     const [c, k, r] = await Promise.all([
       supabase.from('caregiver_cards').select('id, first_name, surname_initial, looking_for, open_to_permanent').in('id', ids),
       supabase.from('credentials').select('user_id, kind, status, expires_on').in('user_id', ids),
-      supabase.from('rating_summary').select('ratee_id, average, total').in('ratee_id', ids),
+      supabase.from('recommendation_summary').select('subject_id, total').in('subject_id', ids),
     ]);
     const found = (c.data ?? []) as CaregiverCard[];
     setCredentials((list) => [...list.filter((x) => !ids.includes(x.user_id)), ...((k.data ?? []) as CredentialSummary[])]);
-    setSummaries((list) => [...list.filter((x) => !ids.includes(x.ratee_id)), ...((r.data ?? []) as RatingSummary[])]);
+    setSummaries((list) => [...list.filter((x) => !ids.includes(x.subject_id)), ...((r.data ?? []) as RecSummary[])]);
     const order = DAYS.map((d) => d.day);
     setMore(
       ids
@@ -272,7 +272,7 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
             card={card}
             credentials={credentials.filter((c) => c.user_id === card.id)}
             required={chosen?.requirements}
-            rating={summaries.find((x) => x.ratee_id === card.id)}
+            recs={summaries.find((x) => x.subject_id === card.id)?.total}
           />
           {milesTo(card.id) != null && (
             <span className="chips">

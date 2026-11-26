@@ -4,7 +4,23 @@ import { CREDENTIAL_LABELS, formatDate, formatTime, payText, todayText } from '.
 import StateCheck from './StateCheck';
 import Band from '../../components/Band';
 
-type Section = 'overview' | 'credentials' | 'homes' | 'people' | 'shifts' | 'packages';
+type Section = 'overview' | 'credentials' | 'homes' | 'people' | 'shifts' | 'packages' | 'reports';
+
+interface ReportRow {
+  id: string;
+  about: string | null;
+  body: string;
+  status: 'open' | 'closed';
+  created_at: string;
+  reporter: string;
+  email: string | null;
+}
+
+interface Trust {
+  recommendations_shown: number;
+  recommendations_waiting: number;
+  reports: ReportRow[];
+}
 
 const SECTIONS: { id: Section; label: string }[] = [
   { id: 'overview', label: 'Overview' },
@@ -13,6 +29,7 @@ const SECTIONS: { id: Section; label: string }[] = [
   { id: 'people', label: 'People' },
   { id: 'shifts', label: 'Shifts' },
   { id: 'packages', label: 'Prices' },
+  { id: 'reports', label: 'Reports' },
 ];
 
 interface Overview {
@@ -32,8 +49,6 @@ interface Overview {
   shifts_unfilled_past: number;
   applications: number;
   messages: number;
-  ratings: number;
-  average_rating: number | null;
 }
 
 interface CredentialRow {
@@ -65,8 +80,6 @@ interface HomeRow {
   requested_plan: string | null;
   shifts_posted: number;
   shifts_filled: number;
-  rating: number | null;
-  ratings: number;
 }
 
 interface PersonRow {
@@ -80,7 +93,6 @@ interface PersonRow {
   last_sign_in_at: string | null;
   credentials: number;
   shifts_worked: number;
-  rating: number | null;
 }
 
 interface ShiftRow {
@@ -128,6 +140,7 @@ export default function Admin({ onClose }: Props) {
   const [people, setPeople] = useState<PersonRow[] | null>(null);
   const [shifts, setShifts] = useState<ShiftRow[] | null>(null);
   const [plans, setPlans] = useState<PlanRow[] | null>(null);
+  const [trust, setTrust] = useState<Trust | null>(null);
   const [credFilter, setCredFilter] = useState<'waiting' | 'verified' | 'all'>('waiting');
   const [peopleFilter, setPeopleFilter] = useState<'all' | 'caregiver' | 'provider' | 'unconfirmed'>('all');
   const [query, setQuery] = useState('');
@@ -152,6 +165,7 @@ export default function Admin({ onClose }: Props) {
     setError('');
     try {
       if (which === 'overview') await read<Overview>('admin_overview', setOverview);
+      if (which === 'overview' || which === 'reports') await read<Trust>('admin_trust', setTrust);
       if (which === 'credentials') await read<CredentialRow[]>('admin_credentials', setCredentials);
       if (which === 'homes') await read<HomeRow[]>('admin_homes', setHomes);
       if (which === 'people') await read<PersonRow[]>('admin_people', setPeople);
@@ -225,6 +239,9 @@ export default function Admin({ onClose }: Props) {
               )}
               {s.id === 'homes' && overview && overview.homes_unverified + overview.package_requests > 0 && (
                 <span className="badge">{overview.homes_unverified + overview.package_requests}</span>
+              )}
+              {s.id === 'reports' && trust && trust.reports.filter((r) => r.status === 'open').length > 0 && (
+                <span className="badge">{trust.reports.filter((r) => r.status === 'open').length}</span>
               )}
             </button>
           ))}
@@ -376,7 +393,6 @@ export default function Admin({ onClose }: Props) {
                             <span className="chip">Last sign-in: {day(p.last_sign_in_at)}</span>
                             {p.role === 'caregiver' && <span className="chip">{p.credentials} credentials</span>}
                             {p.role === 'caregiver' && <span className="chip">{p.shifts_worked} shifts accepted</span>}
-                            {p.rating != null && <span className="chip">Rated {Number(p.rating).toFixed(1)}</span>}
                           </span>
                         </div>
                       </div>
@@ -422,6 +438,51 @@ export default function Admin({ onClose }: Props) {
                     </li>
                   );
                 })}
+              />
+            )}
+          </section>
+        )}
+
+        {section === 'reports' && (
+          <section className="section">
+            <h2>Problem reports</h2>
+            <p className="hint">
+              Private notes from caregivers and homes. Only you see them. Recommendations on profiles:{' '}
+              {trust ? trust.recommendations_shown : '…'}. Requests still waiting for an answer:{' '}
+              {trust ? trust.recommendations_waiting : '…'}.
+            </p>
+            {!trust ? (
+              <p className="hint">Loading…</p>
+            ) : (
+              <CardList
+                empty="No reports."
+                items={trust.reports.map((r) => (
+                  <li key={r.id}>
+                    <div className="list-main">
+                      <span className="list-title">{r.about ? `About: ${r.about}` : 'Problem report'}</span>
+                      <p className="rec-body">{r.body}</p>
+                      <span className="hint">
+                        {r.reporter}
+                        {r.email && ` · ${r.email}`} · {day(r.created_at)}
+                      </span>
+                      <span className="chips">
+                        <span className={`chip ${r.status === 'open' ? 'warn' : 'ok'}`}>{r.status === 'open' ? 'Open' : 'Dealt with'}</span>
+                      </span>
+                      <div className="actions">
+                        <button
+                          type="button"
+                          className="btn small secondary"
+                          disabled={busy}
+                          onClick={() =>
+                            act('admin_close_report', { target: r.id, reopen: r.status !== 'open' }, r.status === 'open' ? 'Marked as dealt with.' : 'Opened again.', 'reports')
+                          }
+                        >
+                          {r.status === 'open' ? 'Mark as dealt with' : 'Open again'}
+                        </button>
+                      </div>
+                    </div>
+                  </li>
+                ))}
               />
             )}
           </section>
@@ -494,7 +555,6 @@ function OverviewView({ o, toCredentials, toHomes, toPeople, toShifts }: { o: Ov
     [o.shifts_filled, 'shifts filled'],
     [o.applications, 'applications and offers'],
     [o.messages, 'messages sent'],
-    [o.average_rating != null ? `${Number(o.average_rating).toFixed(1)} of 5` : 'None yet', `average rating, from ${o.ratings}`],
     [o.credentials_expiring, 'credentials expiring in 30 days'],
   ];
 
@@ -561,11 +621,6 @@ function HomeCard({ h, busy, act }: { h: HomeRow; busy: boolean; act: Act }) {
             <span className="chip">
               {h.shifts_filled} of {h.shifts_posted} shifts filled
             </span>
-            {h.rating != null && (
-              <span className="chip">
-                Rated {Number(h.rating).toFixed(1)} from {h.ratings}
-              </span>
-            )}
           </span>
         </div>
         <div className="actions">

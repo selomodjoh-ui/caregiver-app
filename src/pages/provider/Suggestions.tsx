@@ -1,7 +1,7 @@
 import Avatar from '../../components/Avatar';
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { RatingLine } from '../../components/Rating';
+import { RecList } from '../../components/Recommendations';
 import { shiftTitle, type Shift, type Thread } from '../../lib/types';
 
 interface Suggestion {
@@ -92,7 +92,7 @@ export default function Suggestions({ shift, homeId, stillNeeded, onOffered, onO
         <>
           <p className="hint">
             Free at this time{shift.preferred_sex ? `, ${shift.preferred_sex}` : ''}, ranked by the credentials you
-            asked for and then by rating.
+            asked for and then by recommendations.
           </p>
           {list.map((s, i) => (
             <div key={s.id} className="applicant">
@@ -102,7 +102,7 @@ export default function Suggestions({ shift, homeId, stillNeeded, onOffered, onO
                   <span className="list-title">
                     {s.first_name} {s.surname_initial}.
                   </span>
-                  <RatingLine summary={s.total > 0 && s.average != null ? { ratee_id: s.id, average: s.average, total: s.total } : undefined} />
+                  <RecList subjectId={s.id} total={s.total} />
                   <span className="chips">
                     {i === 0 && <span className="chip warn">Best match</span>}
                     <span className={`chip ${s.missing === 0 ? 'ok' : 'bad'}`}>
