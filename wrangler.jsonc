@@ -1,10 +1,14 @@
 {
 	// Tells Cloudflare how to publish this app: serve the built files in dist/
-	// and send every unknown address to index.html (it is a single-page app).
+	// The app only lives at / (it uses ?query and #hash, never paths), so an
+	// unknown address gets a real 404 (public/404.html) instead of the app shell.
 	"name": "caregiver-app",
 	"compatibility_date": "2026-11-09",
 	"assets": {
 		"directory": "./dist/",
-		"not_found_handling": "single-page-application"
-	}
+		"not_found_handling": "404-page"
+	},
+	// Lets Cloudflare build a preview for pull requests (`wrangler preview`).
+	// Empty on purpose: previews reuse the settings above.
+	"previews": {}
 }

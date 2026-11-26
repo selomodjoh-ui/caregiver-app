@@ -1,0 +1,5 @@
+# Everything public may be crawled.
+User-agent: *
+Allow: /
+
+Sitemap: https://getshiftkind.com/sitemap.xml
