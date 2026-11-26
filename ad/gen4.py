@@ -186,10 +186,10 @@ for i, (t, at, x, yy, w) in enumerate([("Live-in or live-out", 16.6, 250, 470, 4
     side(f"s5c{i}", t, x, yy, at, T[5], PEACH, INK, 34, w=w)
 # 5 Lydia sees it and applies
 full("s6", "a6", T[5], T[6])
-phone("s6p", "board", T[5] + 0.2, T[6], y=860)
-for i, (t, at, x, yy, w) in enumerate([("Real home", 22.6, 190, 600, 300), ("$4,200 a month", 23.6, 870, 760, 400), ("11 miles away", 24.6, 200, 930, 360)]):
+phone("s6p", "board", T[5] + 0.2, T[6], y=1030, k=0.76)
+for i, (t, at, x, yy, w) in enumerate([("Real home", 22.6, 185, 900, 300), ("$4,200 a month", 23.6, 860, 1000, 400), ("11 miles away", 24.6, 200, 1130, 360)]):
     side(f"s6c{i}", t, x, yy, at, T[6], PEACH, INK, 34, w=w)
-chip("s6apply", "Applied, with a short note", 1385, 25.6, T[6], EM, "#ffffff", 40, "bold", w=660, h=96, dy=0, pop=0.6)
+chip("s6apply", "Applied, with a short note", 1425, 25.6, T[6], EM, "#ffffff", 40, "bold", w=660, h=96, dy=0, pop=0.6)
 # 6 Miss Dona checks, shortlists, messages
 bg("s7bg", MINT, T[6], T[7])
 layer("s7h", text("Checked before they meet", 56, EM, "xbold"), 540, 170, T[6] + 0.2, T[7], dy=30)
