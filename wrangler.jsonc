@@ -20,6 +20,12 @@
 		"SUPABASE_KEY": "sb_publishable_jdCoelaosv4b4AQAIQoaLw_fJioZofu"
 	},
 	// Lets Cloudflare build a preview for pull requests (`wrangler preview`).
-	// Empty on purpose: previews reuse the settings above.
-	"previews": {}
+	// Previews keep the assets settings above but do not inherit "vars",
+	// so the same public Supabase values are repeated here.
+	"previews": {
+		"vars": {
+			"SUPABASE_URL": "https://tnukrnluhjvalyrkslef.supabase.co",
+			"SUPABASE_KEY": "sb_publishable_jdCoelaosv4b4AQAIQoaLw_fJioZofu"
+		}
+	}
 }
