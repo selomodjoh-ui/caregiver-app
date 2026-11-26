@@ -214,6 +214,7 @@ export default function Home({ session }: Props) {
           ))}
         {tab === 'reports' && <Reports userId={userId} home={home} onNeedHome={() => changeTab('home')} />}
         {tab === 'availability' && <Availability userId={userId} />}
+        {tab === 'availability' && <LookingFor userId={userId} />}
         {tab === 'credentials' && <Credentials userId={userId} />}
         {tab === 'find' && (
           <FindCaregivers userId={userId} home={home} onOpenThread={openThread} onNeedHome={() => changeTab('home')} />
@@ -239,7 +240,6 @@ export default function Home({ session }: Props) {
           <PhotoPicker userId={userId} name={profile.first_name} isProvider={isProvider} />
         )}
         {tab === 'account' && <MyRecommendations userId={userId} isProvider={isProvider} />}
-        {tab === 'account' && !isProvider && <LookingFor userId={userId} />}
         {tab === 'account' && !isProvider && <MyArea userId={userId} />}
         {tab === 'account' && <ReportProblem userId={userId} />}
         {tab === 'account' && (

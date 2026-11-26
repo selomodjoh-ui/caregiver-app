@@ -2414,3 +2414,190 @@ body.wide .band-lead {
   flex-direction: column;
   gap: 2px;
 }
+
+/* ---------- Free time: summary, day rows, four-week calendar ---------- */
+
+.free-summary {
+  margin: 12px 0 0;
+  padding: 14px 16px;
+  background: var(--peri);
+  border-radius: 16px;
+  font: 600 16px/1.4 var(--body);
+  color: var(--ink);
+}
+
+.free-summary.none {
+  background: #fdf1dc;
+}
+
+.quick-week {
+  margin-bottom: 10px;
+}
+
+.day-list {
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: 20px;
+  padding: 4px 14px;
+}
+
+.day-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.day-row + .day-row {
+  border-top: 1px solid var(--line);
+}
+
+.day-name {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.day-name strong {
+  font: 700 16px var(--display);
+}
+
+.day-name small {
+  font: 500 13.5px var(--body);
+  color: var(--berry);
+}
+
+.day-name small.off {
+  color: var(--muted);
+}
+
+.part-pick {
+  min-width: 76px;
+  height: 46px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 1.5px solid var(--field-line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--muted);
+  font: 600 14.5px var(--body);
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, transform 0.1s;
+}
+
+.part-pick:active {
+  transform: scale(0.95);
+}
+
+.part-pick.on {
+  background: var(--berry);
+  border-color: var(--berry);
+  color: #ffffff;
+}
+
+.month {
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: 20px;
+  padding: 12px 8px;
+}
+
+.month-row {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.month-head {
+  margin-bottom: 6px;
+  text-align: center;
+  font: 600 12.5px var(--body);
+  color: var(--muted);
+}
+
+.date-cell {
+  min-height: 62px;
+  padding: 4px 0 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.15;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--muted);
+  font-family: var(--body);
+  cursor: pointer;
+}
+
+.date-cell small {
+  font: 600 10.5px var(--body);
+}
+
+.date-cell b {
+  font: 700 16px var(--display);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.date-marks {
+  font: 700 11.5px var(--body);
+}
+
+.date-cell.free {
+  background: var(--peri);
+  border-color: var(--peri);
+}
+
+.date-cell.free .date-marks {
+  color: var(--berry);
+}
+
+.date-cell.changed {
+  border-color: var(--sun);
+  box-shadow: inset 0 0 0 1.5px var(--sun);
+}
+
+.date-cell.open {
+  border-color: var(--berry);
+  box-shadow: inset 0 0 0 1.5px var(--berry);
+}
+
+.month-key {
+  margin: 10px 4px 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.date-panel {
+  margin-top: 10px;
+  padding: 14px;
+  background: var(--surface);
+  border: 1.5px solid var(--berry);
+  border-radius: 16px;
+}
+
+.date-panel strong {
+  font: 700 16px var(--display);
+}
+
+.date-panel-row {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.date-panel .slot {
+  height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.15;
+}
