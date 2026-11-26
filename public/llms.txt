@@ -9,6 +9,6 @@
 
 ## Pages
 
-- [About ShiftKind](https://getshiftkind.com/welcome/): how a shift gets filled, features for caregivers and homes, pricing summary
+- [About ShiftKind](https://getshiftkind.com/): how a shift gets filled, features for caregivers and homes, pricing summary
 - [Privacy policy](https://getshiftkind.com/privacy/)
 - [Terms of use](https://getshiftkind.com/terms/)

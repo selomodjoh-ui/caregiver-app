@@ -1,4 +1,4 @@
-# Everything public may be crawled. The app itself lives at / and is canonicalised to /welcome/.
+# Everything public may be crawled.
 User-agent: *
 Allow: /
 

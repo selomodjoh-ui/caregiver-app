@@ -302,7 +302,7 @@ export default function SignUp({ onSwitch }: Props) {
         </p>
         <p className="switch">
           New to ShiftKind?{' '}
-          <a className="link" href="/welcome/">
+          <a className="link" href="/?about">
             See how it works
           </a>
         </p>

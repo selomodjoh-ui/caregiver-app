@@ -21,7 +21,7 @@ export default function DeleteAccount({ isProvider }: { isProvider: boolean }) {
       return;
     }
     await supabase.auth.signOut({ scope: 'local' }).catch(() => undefined);
-    window.location.assign('/welcome/');
+    window.location.assign('/');
   }
 
   if (!open) {
