@@ -34,6 +34,7 @@ export interface HomeInfo {
   name: string;
   license_number: string | null;
   address: string | null;
+  town?: string | null;
   phone: string | null;
   years_operating: number | null;
   bed_bound: number;

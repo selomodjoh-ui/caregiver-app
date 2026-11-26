@@ -19,8 +19,11 @@ A job-matching web app for Washington State that connects licensed caregivers wi
   attention, credential and licence verification, packages and prices, every account and shift.
   Make someone an admin with:
   `insert into public.admins (user_id) select id from auth.users where email = 'THEIR EMAIL';`
-- A public web page at `/welcome/` (`public/welcome/index.html`): what ShiftKind is, how a shift
-  gets filled, the planned 75-hour training, and screenshots of the app.
+- A public welcome page at `/` (`index.html`): what ShiftKind is, how a shift gets filled, the
+  planned 75-hour training, prices, and screenshots of the app. Signed-in visitors and links
+  from buttons or emails go straight into the app instead.
+- A public board of open shifts at `/shifts/`: date, hours, town and pay at licence-verified
+  homes, with no home name or address. Homes set their town in Home profile.
 
 Not built yet: profile and home photos, online payments, email or text
 alerts, automatic licence checks. Credentials and home licences are verified by hand in the
@@ -30,7 +33,9 @@ Supabase Table Editor (`credentials.status`, `homes.license_verified`).
 
 - **App:** React and TypeScript, built with Vite. It runs in any phone or computer browser.
 - **Backend:** Supabase (logins, database, file storage).
-- **Hosting:** Cloudflare Workers, connected to this repository. Every push to `main` rebuilds
+- **Hosting:** Cloudflare Workers, connected to this repository. Static files are served from
+  `dist/`; a small Worker (`worker/index.ts`) renders the pages that show live data (prices on `/`,
+  `/shifts/`, `llms.txt`, `sitemap.xml`) from Supabase with the public key. Every push to `main` rebuilds
   the live site at https://getshiftkind.com (also https://caregiver-app.selomodjoh.workers.dev)
 
 ## One-time setup

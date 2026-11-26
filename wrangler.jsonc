@@ -1,14 +1,31 @@
 {
-	// Tells Cloudflare how to publish this app: serve the built files in dist/
+	// Tells Cloudflare how to publish this app. Static files come from dist/.
 	// The app only lives at / (it uses ?query and #hash, never paths), so an
 	// unknown address gets a real 404 (public/404.html) instead of the app shell.
 	"name": "caregiver-app",
 	"compatibility_date": "2026-11-09",
+	// A small Worker runs first only for the public pages that show live data
+	// (prices on /, the /shifts/ board, llms.txt, sitemap.xml). See worker/index.ts.
+	"main": "worker/index.ts",
 	"assets": {
 		"directory": "./dist/",
-		"not_found_handling": "404-page"
+		"binding": "ASSETS",
+		"not_found_handling": "404-page",
+		"run_worker_first": ["/", "/shifts", "/shifts/", "/llms.txt", "/sitemap.xml"]
+	},
+	// Public by design (the same values the app ships to every browser).
+	// Never put the secret (sb_secret_... / service_role) key here.
+	"vars": {
+		"SUPABASE_URL": "https://tnukrnluhjvalyrkslef.supabase.co",
+		"SUPABASE_KEY": "sb_publishable_jdCoelaosv4b4AQAIQoaLw_fJioZofu"
 	},
 	// Lets Cloudflare build a preview for pull requests (`wrangler preview`).
-	// Empty on purpose: previews reuse the settings above.
-	"previews": {}
+	// Previews keep the assets settings above but do not inherit "vars",
+	// so the same public Supabase values are repeated here.
+	"previews": {
+		"vars": {
+			"SUPABASE_URL": "https://tnukrnluhjvalyrkslef.supabase.co",
+			"SUPABASE_KEY": "sb_publishable_jdCoelaosv4b4AQAIQoaLw_fJioZofu"
+		}
+	}
 }

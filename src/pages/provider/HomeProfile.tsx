@@ -22,6 +22,7 @@ export default function HomeProfile({ userId, home, onSaved }: Props) {
   const [name, setName] = useState('');
   const [license, setLicense] = useState('');
   const [address, setAddress] = useState('');
+  const [town, setTown] = useState('');
   const [phone, setPhone] = useState('');
   const [years, setYears] = useState('');
   const [mix, setMix] = useState<Record<MixKey, number>>({ bed_bound: 0, assisted: 0, independent: 0 });
@@ -36,6 +37,7 @@ export default function HomeProfile({ userId, home, onSaved }: Props) {
     setName(home.name);
     setLicense(home.license_number ?? '');
     setAddress(home.address ?? '');
+    setTown(home.town ?? '');
     setPhone(home.phone ?? '');
     setYears(home.years_operating != null ? String(home.years_operating) : '');
     setMix({ bed_bound: home.bed_bound, assisted: home.assisted, independent: home.independent });
@@ -60,6 +62,7 @@ export default function HomeProfile({ userId, home, onSaved }: Props) {
       name: name.trim(),
       license_number: license.trim() || null,
       address: address.trim() || null,
+      town: town.trim() || null,
       phone: phone.trim() || null,
       years_operating: years === '' ? null : Number(years),
       ...mix,
@@ -104,6 +107,11 @@ export default function HomeProfile({ userId, home, onSaved }: Props) {
         <div className="field">
           <label htmlFor="hp-addr">Address of the home</label>
           <input id="hp-addr" autoComplete="street-address" value={address} onChange={(e) => { setAddress(e.target.value); setSaved(false); }} />
+        </div>
+        <div className="field">
+          <label htmlFor="hp-town">Town or city</label>
+          <input id="hp-town" autoComplete="address-level2" value={town} onChange={(e) => { setTown(e.target.value); setSaved(false); }} />
+          <span className="hint">Shown with your open shifts on the public shift board, instead of your address.</span>
         </div>
         <div className="field">
           <label htmlFor="hp-tel">Provider's telephone number</label>
