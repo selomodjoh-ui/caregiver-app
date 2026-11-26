@@ -39,6 +39,7 @@ const APP_TEXT: Record<JobApplication['status'], string> = {
 /** A home's permanent and long-term jobs: post one, and review who applied. */
 export default function ProviderJobs({ userId, home, onOpenThread, onNeedHome }: Props) {
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [seekKind, setSeekKind] = useState<'any' | 'live_in' | 'live_out'>('any');
   const [apps, setApps] = useState<JobApplication[]>([]);
   const [cards, setCards] = useState<CaregiverCard[]>([]);
   const [credentials, setCredentials] = useState<CredentialSummary[]>([]);
@@ -189,7 +190,8 @@ export default function ProviderJobs({ userId, home, onOpenThread, onNeedHome }:
   }
 
   const applicants = new Set(apps.map((a) => a.caregiver_id));
-  const others = seekers.filter((s) => !applicants.has(s.id));
+  const allOthers = seekers.filter((s) => !applicants.has(s.id));
+  const others = allOthers.filter((s) => seekKind === 'any' || (s.shift_types ?? []).includes(seekKind));
 
   return (
     <section className="section">
@@ -380,8 +382,21 @@ export default function ProviderJobs({ userId, home, onOpenThread, onNeedHome }:
           )}
 
           <h3 className="week-title">Caregivers open to permanent work</h3>
+          {allOthers.length > 0 && (
+            <div className="filter-chips" role="group" aria-label="Type of permanent work">
+              {([['any', 'Any'], ['live_in', 'Live-in'], ['live_out', 'Live-out']] as const).map(([id, label]) => (
+                <button key={id} type="button" className={`chip pick ${seekKind === id ? 'on' : ''}`} aria-pressed={seekKind === id} onClick={() => setSeekKind(id)}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
           {others.length === 0 ? (
-            <p className="hint">Nobody has marked themselves open to permanent work yet.</p>
+            <p className="hint">
+              {allOthers.length === 0
+                ? 'Nobody has marked themselves open to permanent work yet.'
+                : 'Nobody open to that kind of permanent work yet. Tap "Any" to see everyone.'}
+            </p>
           ) : (
             <ul className="list">
               {others.map((s) => (

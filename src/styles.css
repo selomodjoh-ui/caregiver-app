@@ -2309,6 +2309,29 @@ body.wide .band-lead {
   color: #ffffff;
 }
 
+.type-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.type-filter .label {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-chips .chip.pick {
+  min-height: 44px;
+  padding: 8px 16px;
+  font-size: 15px;
+}
+
 .shift-types {
   display: flex;
   flex-direction: column;

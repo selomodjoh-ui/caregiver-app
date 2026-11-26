@@ -10,6 +10,7 @@ import {
   isHomeActive,
   partOf,
   shiftTitle,
+  SHIFT_TYPES,
   shiftTypeLabels,
   todayText,
   type Application,
@@ -82,6 +83,8 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
   const [more, setMore] = useState<{ card: CaregiverCard; slots: string[] }[] | null>(null);
   const [searched, setSearched] = useState(false);
   const [view, setView] = useState<'list' | 'map'>('list');
+  /** Shift types the home wants; a caregiver must have picked every one of them to be shown. */
+  const [types, setTypes] = useState<string[]>([]);
   const [areas, setAreas] = useState<Record<string, Point>>({});
   const [cell, setCell] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -349,10 +352,15 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
     );
   }
 
+  const fits = (card: CaregiverCard) => types.every((t) => (card.shift_types ?? []).includes(t));
+  const shownCards = cards.filter(fits);
+  const shownMore = more === null ? null : more.filter((m) => fits(m.card));
+  const hidden = cards.length - shownCards.length + (more ? more.length - (shownMore?.length ?? 0) : 0);
+
   // Everyone we know about who shared an area, grouped by area so overlapping circles open together.
   const people: { card: CaregiverCard; slots?: string[]; free: boolean }[] = [
-    ...cards.map((card) => ({ card, free: true })),
-    ...(more ?? []).map((m) => ({ card: m.card, slots: m.slots, free: false })),
+    ...shownCards.map((card) => ({ card, free: true })),
+    ...(shownMore ?? []).map((m) => ({ card: m.card, slots: m.slots, free: false })),
   ].filter((x) => areas[x.card.id]);
   const pins: Pin[] = [];
   for (const x of people) {
@@ -483,6 +491,37 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
         <p className="hint">Post a shift first, then you can offer it to someone here.</p>
       )}
 
+      {searched && (
+        <div className="type-filter">
+          <span id="type-filter-title" className="label">Type of work</span>
+          <div className="filter-chips" role="group" aria-labelledby="type-filter-title">
+            <button type="button" className={`chip pick ${types.length === 0 ? 'on' : ''}`} aria-pressed={types.length === 0} onClick={() => setTypes([])}>
+              Any
+            </button>
+            {SHIFT_TYPES.map((t) => {
+              const on = types.includes(t.id);
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  className={`chip pick ${on ? 'on' : ''}`}
+                  aria-pressed={on}
+                  onClick={() => setTypes(on ? types.filter((x) => x !== t.id) : [...types, t.id])}
+                >
+                  {t.label}
+                </button>
+              );
+            })}
+          </div>
+          {types.length > 0 && (
+            <p className="hint" role="status">
+              Showing caregivers who chose {types.length === 1 ? 'this type' : 'all of these types'}.
+              {hidden > 0 && ` ${hidden} ${hidden === 1 ? 'other is' : 'others are'} hidden.`}
+            </p>
+          )}
+        </div>
+      )}
+
       <div className="segmented" role="group" aria-label="View">
         <button type="button" className={view === 'list' ? 'on' : ''} aria-pressed={view === 'list'} onClick={() => setView('list')}>
           List
@@ -538,7 +577,14 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
         </p>
       )}
 
-      <ul className="list">{cards.map((card) => row(card))}</ul>
+      {types.length > 0 && cards.length > 0 && shownCards.length === 0 && (
+        <p className="hint">
+          Nobody free at {wanted.length > 1 ? 'those times' : 'that time'} has chosen {types.length === 1 ? 'that type' : 'all of those types'} of work. Tap
+          "Any" to see everyone.
+        </p>
+      )}
+
+      <ul className="list">{shownCards.map((card) => row(card))}</ul>
 
       {searched && more === null && (
         <button type="button" className="btn secondary" disabled={busy} onClick={loadMore}>
@@ -556,7 +602,7 @@ export default function FindCaregivers({ userId, home, onOpenThread, onNeedHome 
               <p className="hint">
                 These caregivers have not marked the times you asked for as free, but may be able to help. Their free times are shown. Message them to ask.
               </p>
-              <ul className="list">{more.map((m) => row(m.card, m.slots))}</ul>
+              <ul className="list">{(shownMore ?? []).map((m) => row(m.card, m.slots))}</ul>
             </>
           )}
         </>
